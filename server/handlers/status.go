@@ -17,6 +17,6 @@ func StatusReady(c echo.Context) error {
 }
 
 // StatusConfig is a method that respond WORKING and is used to verify that the application is running (live)
-func StatusConfig(c echo.Context) error {
+func (h AppHandler) StatusConfig(c echo.Context) error {
 	return c.String(http.StatusOK, "WORKING")
 }

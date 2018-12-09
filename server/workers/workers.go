@@ -13,12 +13,6 @@ type Worker struct{}
 
 // InitWorkers is the function thats starts workers
 func InitWorkers(auditChannel *chan models.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool) {
-	if len(os.Getenv("WORKERS_AUDIT")) == 0 {
-		panic("WORKERS_AUDIT is not set")
-	}
-	if len(os.Getenv("WORKERS_LOG")) == 0 {
-		panic("WORKERS_LOG is not set")
-	}
 	workers, _ := strconv.Atoi(os.Getenv("WORKERS_AUDIT"))
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
