@@ -69,7 +69,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
-	certRequest.ValidBefore = time.Now().Add(600 * time.Second)
+	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("CERT_DURATION"))
 
 	// Parse user key
 	var err error

@@ -17,7 +17,7 @@ func Init() viper.Viper {
 	config.SetDefault("CHANNEL_SIZE", 100)
 	config.SetDefault("WORKERS_AUDIT", 1)
 	config.SetDefault("WORKERS_LOG", 1)
-	config.SetDefault("CERT_DURATION", 600)
+	config.SetDefault("CERT_DURATION", 600000000000) // 600 secs
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
