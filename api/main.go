@@ -4,11 +4,11 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/globocom/gsh/server/config"
+	"github.com/globocom/gsh/api/config"
 	"github.com/globocom/gsh/types"
 
-	"github.com/globocom/gsh/server/handlers"
-	"github.com/globocom/gsh/server/workers"
+	"github.com/globocom/gsh/api/handlers"
+	"github.com/globocom/gsh/api/workers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
