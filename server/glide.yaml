@@ -1,0 +1,9 @@
+package: github.com/globocom/gsh/server
+import:
+- package: github.com/globocom/gsh
+  subpackages:
+  - types
+- package: github.com/labstack/echo
+  version: ^3.3.8
+  subpackages:
+  - middleware
