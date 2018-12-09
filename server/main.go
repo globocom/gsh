@@ -5,10 +5,10 @@ import (
 	"strconv"
 
 	"github.com/globocom/gsh/server/config"
+	"github.com/globocom/gsh/types"
 
 	"github.com/globocom/gsh/server/handlers"
 	"github.com/globocom/gsh/server/workers"
-	"github.com/globocom/gsh/types"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -23,7 +23,7 @@ func main() {
 
 	// Configuring channels
 	var defaultChannelSize, _ = strconv.Atoi(os.Getenv("CHANNEL_SIZE"))
-	var auditChannel = make(chan models.AuditRecord, defaultChannelSize)
+	var auditChannel = make(chan types.AuditRecord, defaultChannelSize)
 	var logChannel = make(chan map[string]interface{}, defaultChannelSize)
 	var stopChannel = make(chan bool)
 	workers.InitWorkers(&auditChannel, &logChannel, &stopChannel)
@@ -42,6 +42,8 @@ func main() {
 	e.GET("/status/live", handlers.StatusLive)
 	e.GET("/status/ready", handlers.StatusReady)
 	e.GET("/status/config", appHandler.StatusConfig)
+
+	e.POST("/certificates", appHandler.CertCreate)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

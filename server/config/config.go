@@ -17,6 +17,7 @@ func Init() viper.Viper {
 	config.SetDefault("CHANNEL_SIZE", 100)
 	config.SetDefault("WORKERS_AUDIT", 1)
 	config.SetDefault("WORKERS_LOG", 1)
+	config.SetDefault("CERT_DURATION", 600)
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -37,6 +38,15 @@ func Check(config viper.Viper) error {
 		fails++
 	}
 	if config.GetInt("WORKERS_LOG") == 0 {
+		fails++
+	}
+	if config.GetInt("CERT_DURATION") == 0 {
+		fails++
+	}
+	if len(config.GetString("CA_PRIVATE_KEY")) == 0 {
+		fails++
+	}
+	if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
 		fails++
 	}
 

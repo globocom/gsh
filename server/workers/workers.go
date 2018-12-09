@@ -12,7 +12,7 @@ import (
 type Worker struct{}
 
 // InitWorkers is the function thats starts workers
-func InitWorkers(auditChannel *chan models.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool) {
+func InitWorkers(auditChannel *chan types.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool) {
 	workers, _ := strconv.Atoi(os.Getenv("WORKERS_AUDIT"))
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
@@ -27,7 +27,7 @@ func InitWorkers(auditChannel *chan models.AuditRecord, logChannel *chan map[str
 }
 
 // WriteAudit is the function thats receive AuditRecord from channel auditChannel and handle it
-func (w *Worker) WriteAudit(auditChannel *chan models.AuditRecord, stopChannel *chan bool) {
+func (w *Worker) WriteAudit(auditChannel *chan types.AuditRecord, stopChannel *chan bool) {
 	for {
 		select {
 		case auditRecord := <-*auditChannel:
