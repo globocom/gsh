@@ -104,7 +104,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	cc := certConfig{
 		certType:    ssh.UserCert,
 		command:     certRequest.Command,
-		extensions:  map[string]string{},
+		extensions:  map[string]string{"permit-pty": ""},
 		keyID:       certRequest.KeyID,
 		principals:  []string{certRequest.RemoteUser},
 		srcAddr:     certRequest.BastionIP,
