@@ -18,6 +18,11 @@ func Init() viper.Viper {
 	config.SetDefault("WORKERS_AUDIT", 1)
 	config.SetDefault("WORKERS_LOG", 1)
 	config.SetDefault("CERT_DURATION", 600000000000) // 600 secs
+	config.SetDefault("STORAGE_DRIVER", "MYSQL")
+	config.SetDefault("STORAGE_URI", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
+	config.SetDefault("STORAGE_MAX_ATTEMPTS", 20)
+	config.SetDefault("STORAGE_MAX_CONNECTIONS", 20)
+	config.SetDefault("STORAGE_DEBUG", false)
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -47,6 +52,12 @@ func Check(config viper.Viper) error {
 		fails++
 	}
 	if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
+		fails++
+	}
+	if len(config.GetString("STORAGE_DRIVER")) == 0 {
+		fails++
+	}
+	if len(config.GetString("STORAGE_URI")) == 0 {
 		fails++
 	}
 
