@@ -9,23 +9,25 @@ import (
 
 // CertRequest is the struct that represents a certificate request
 type CertRequest struct {
-	UID         uuid.UUID `json:"uid,omitempty"`
-	BastionIP   string    `json:"bastion_ip,omitempty"`
-	BastionUser string    `json:"bastion_user,omitempty"`
-	Command     string    `json:"command,omitempty"`
-	CSR         string    `json:"csr,omitempty"`
-	Key         string    `json:"key,omitempty"`
-	RemoteUser  string    `json:"remote_user,omitempty"`
-	UserIP      string    `json:"user_ip,omitempty"`
+	UID        uuid.UUID `json:"uid,omitempty" gorm:"column:uid;index:idx_uid"`
+	Command    string    `json:"command,omitempty" gorm:"column:command"`
+	Key        string    `json:"key,omitempty" gorm:"column:key"`
+	RemoteUser string    `json:"remote_user,omitempty" gorm:"column:remote_user;index:idx_remote_user"`
+	RemoteHost string    `json:"remote_host,omitempty" gorm:"column:remote_host;index:idx_remote_host"`
+	UserIP     string    `json:"user_ip,omitempty" gorm:"column:user_ip;index:idx_user_ip"`
 
-	// user is authenticaded user
-	User        string
-	ValidAfter  time.Time
-	ValidBefore time.Time
-	PublicKey   ssh.PublicKey
+	ValidAfter  time.Time     `json:"-" gorm:"column:valid_after;index:idx_va"`
+	ValidBefore time.Time     `json:"-" gorm:"column:valid_before;index:idx_vb"`
+	PublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
 
 	// CA used in certificate sign
-	CAPublicKey   ssh.PublicKey
-	CAFingerprint string
-	KeyID         string
+	CAPublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
+	CAFingerprint string        `json:"-" gorm:"column:ca_fingerprint"`
+	KeyID         string        `json:"-" gorm:"column:key_id"`
+
+	// Columns for database
+	ID         uint       `json:"-" gorm:"primary_key"`
+	CreatedAt  time.Time  `json:"-"`
+	DeletedAt  *time.Time `json:"-" sql:"index"`
+	ModifiedAt time.Time  `json:"-"`
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/globocom/gsh/types"
+	"github.com/jinzhu/gorm"
 	"github.com/spf13/viper"
 )
 
@@ -10,13 +11,15 @@ type AppHandler struct {
 	config       viper.Viper
 	auditChannel chan types.AuditRecord
 	logChannel   chan map[string]interface{}
+	db           *gorm.DB
 }
 
 // NewAppHandler return a new pointer of user struct
-func NewAppHandler(config viper.Viper, auditChannel chan types.AuditRecord, logChannel chan map[string]interface{}) *AppHandler {
+func NewAppHandler(config viper.Viper, auditChannel chan types.AuditRecord, logChannel chan map[string]interface{}, db *gorm.DB) *AppHandler {
 	return &AppHandler{
 		config:       config,
 		auditChannel: auditChannel,
 		logChannel:   logChannel,
+		db:           db,
 	}
 }

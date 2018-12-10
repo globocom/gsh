@@ -2,23 +2,23 @@ package workers
 
 import (
 	"fmt"
-	"os"
-	"strconv"
 
 	"github.com/globocom/gsh/types"
+	"github.com/jinzhu/gorm"
+	"github.com/spf13/viper"
 )
 
 // Worker is default interface for workers
 type Worker struct{}
 
 // InitWorkers is the function thats starts workers
-func InitWorkers(auditChannel *chan types.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool) {
-	workers, _ := strconv.Atoi(os.Getenv("WORKERS_AUDIT"))
+func InitWorkers(config viper.Viper, auditChannel *chan types.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool, db *gorm.DB) {
+	workers := config.GetInt("WORKERS_AUDIT")
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
-		go worker.WriteAudit(auditChannel, stopChannel)
+		go worker.WriteAudit(auditChannel, stopChannel, db)
 	}
-	workers, _ = strconv.Atoi(os.Getenv("WORKERS_LOG"))
+	workers = config.GetInt("WORKERS_LOG")
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
 		go worker.WriteLog(logChannel, stopChannel)
@@ -27,11 +27,11 @@ func InitWorkers(auditChannel *chan types.AuditRecord, logChannel *chan map[stri
 }
 
 // WriteAudit is the function thats receive AuditRecord from channel auditChannel and handle it
-func (w *Worker) WriteAudit(auditChannel *chan types.AuditRecord, stopChannel *chan bool) {
+func (w *Worker) WriteAudit(auditChannel *chan types.AuditRecord, stopChannel *chan bool, db *gorm.DB) {
 	for {
 		select {
 		case auditRecord := <-*auditChannel:
-			fmt.Printf("%v\n", auditRecord)
+			db.Create(&auditRecord)
 		case <-*stopChannel:
 			return
 		}

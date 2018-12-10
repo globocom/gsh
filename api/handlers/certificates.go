@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/globocom/gsh/types"
+	"github.com/gofrs/uuid"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/ssh"
 )
@@ -26,39 +27,50 @@ type certConfig struct {
 // CertCreate create a certificate for user login
 // - Input JSON sample:
 // {
-// 	"capacity": 1,
-// 	"date_end": "2017-10-14T21:15:00-02:00",
-// 	"date_open": "2017-10-14T11:30:00-02:00",
-// 	"date_start": "2017-10-14T16:30:00-02:00",
-// 	"description": "ENTRADA: Alface Crespa",
-// 	"ou": "CT",
-// 	"qtd": 800,
-// 	"status": "OPEN",
-// 	"type": "Jantar"
+// 	"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4SgDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p3061Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcKXLl manoel.junior@twofish.local",
+// 	"remote_user":"jim",
+//  "remote_host":"192.168.2.105",
+// 	"user_ip":"192.168.2.5"
 // }
 //
-// - Output JSON sample
-// {
-//     "id": "132",
-//     "result": "success",
-//     "tickets": 10
-// }
-///////////////////////////////////////////////////////////////////////////////
+// - Output sample
+// ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3BlbnNzaC5jb20AAAAgvz
+// 4Hjd5bR2H2ryXBjyTuGt+Uerg80LriH48MtyOyBIgAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiI
+// yBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfn
+// y4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4S
+// gDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p306
+// 1Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcK
+// XLlAAAAAAAAAAAAAAABAAAAtXVzZXJbXSBmcm9tWzE5Mi4xNjguMi41XSBjb21tYW5kW10gc3NoS2V5
+// WzgwOjI5OmY3OmZjOjFkOjFhOjdmOjRiOmM4OjJhOjJhOmUwOjA4OmU2OmQzOjMyXSBjYVtTSEEyNTY
+// 6OU5zLzdHamwxVVFReXBodElLREdZZCtPeUJkVjVrWnNRK3lmaVhzdDg0Y10gdmFsaWQgdG9bMjAxOC
+// 0xMi0wOVQyMTowNjozNS0wMjowMF0AAAAHAAAAA2ppbQAAAABcDZ2FAAAAAFwNn/sAAAAlAAAADnNvd
+// XJjZS1hZGRyZXNzAAAADwAAAAsxOTIuMTY4LjIuNQAAABIAAAAKcGVybWl0LXB0eQAAAAAAAAAAAAAB
+// FQAAAAdzc2gtcnNhAAAAASMAAAEBAPj/vg/zXKNBy+GjtW0dZfZ2LQUeCA5FhOiQPaCpKpLO7YMAA63
+// Lb3KbGdDOAnTFS3K69dwA+oItlSO7aEkIfo7YNxCNb6tMIwoa6y3E1hdQI2N+lAhcg2lSQtbeKzpds7
+// vvQ/j5UuSVWvRxBJZOCkXEHRaA7y8e2jWVHQg9kcDeTFCvcIj7AEkBPTUXQFJd/RxDWmiYPSdQ9FTq3
+// 9y11jKk9YXsG2fjiZo1uenoWCBJi2DJ9gkE53ednJzGAKa7y2+KMHwbPhcuTm19YvtH31M9iF2JtkZx
+// 5qXXeWlJ7HgkcY60j2bUfqBIlZH/dor4t6BHcBOAHbm32C4Xe4jSRVMAAAEPAAAAB3NzaC1yc2EAAAE
+// Ap/sdFMyeo6Jbdu4R33pZiSuTBGyBash4SlK4PoVEiuWnN2UHVH6DAi84qzG+Qhho48YJYarDDxxbOx
+// cDinQ2j15XU0V/vVeucS12UF06HG9r+J51u0KMA/3dN4WNG6GKDrzY5M5Uad7lWnDNtbjRnhPVPCxHg
+// V5YQLO6k94+kaPZbR+bVWb5tAOMoC1XHBwwDNLDqUKs2C8lvEpJY0Mf7ag9SNSep0Q5isq97zY3CWwP
+// CtpYTN9tkQpfn+Noe4H7yOP2mkpAs3i7j/u0+Zz6SHejy4A7HlGHfJvWrOyg8J0ZzBSl5ho5eAw4Lrt
+// +xcTVkFgWWPcml7CFiGwFhbui4w==
+//
 func (h AppHandler) CertCreate(c echo.Context) error {
-	initTime := time.Now().UnixNano()
+	initTime := time.Now()
 
 	// Importing data requested in types.CertRequest struct
 	certRequest := new(types.CertRequest)
 	if err := c.Bind(certRequest); err != nil {
 		finishTime := time.Now().UnixNano()
-		duration := float64((finishTime - initTime) / int64(time.Nanosecond))
+		duration := float64((finishTime - initTime.UnixNano()) / int64(time.Nanosecond))
 		h.logChannel <- map[string]interface{}{
 			"_owner":        c.Get("subject"),
 			"_audience":     c.Get("audience"),
 			"_jti":          c.Get("jti"),
 			"_rid":          c.Get(echo.HeaderXRequestID),
 			"_real-ip":      c.RealIP(),
-			"_action":       "QueuesCreate.Bind",
+			"_action":       "cert.create",
 			"_result":       "fail",
 			"_duration":     duration,
 			"short_message": err.Error,
@@ -98,41 +110,30 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	certRequest.CAFingerprint = ssh.FingerprintSHA256(certRequest.CAPublicKey)
 
 	// Generate our key_id for the certificate
-	certRequest.KeyID = fmt.Sprintf("user[%s] from[%s] command[%s] sshKey[%s] ca[%s] valid to[%s]", certRequest.User, certRequest.UserIP, certRequest.Command, userFingerprint, []byte(certRequest.CAFingerprint), certRequest.ValidBefore.Format(time.RFC3339))
-
-	// Set all of our certificate options
-	cc := certConfig{
-		certType:    ssh.UserCert,
-		command:     certRequest.Command,
-		extensions:  map[string]string{"permit-pty": ""},
-		keyID:       certRequest.KeyID,
-		principals:  []string{certRequest.RemoteUser},
-		srcAddr:     certRequest.BastionIP,
-		validAfter:  certRequest.ValidAfter,
-		validBefore: certRequest.ValidBefore,
-	}
+	// TODO: verify to log user thats requested certificate (not RemoteUser)
+	certRequest.KeyID = fmt.Sprintf("user[%s] from[%s] command[%s] sshKey[%s] ca[%s] valid to[%s]", certRequest.RemoteUser, certRequest.UserIP, certRequest.Command, userFingerprint, []byte(certRequest.CAFingerprint), certRequest.ValidBefore.Format(time.RFC3339))
 
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
-	if cc.command != "" {
-		criticalOptions["force-command"] = cc.command
-	}
-	criticalOptions["source-address"] = cc.srcAddr
+	criticalOptions["force-command"] = certRequest.Command
+	criticalOptions["source-address"] = certRequest.UserIP
 
 	perms := ssh.Permissions{
 		CriticalOptions: criticalOptions,
-		Extensions:      cc.extensions,
+		Extensions:      map[string]string{"permit-pty": ""},
 	}
 
 	// Make a cert from our pubkey
+	certRequest.UID = uuid.Must(uuid.NewV4())
 	cert := &ssh.Certificate{
+		Nonce:           certRequest.UID.Bytes(),
 		Key:             certRequest.PublicKey,
 		Serial:          0,
-		CertType:        cc.certType,
-		KeyId:           cc.keyID,
-		ValidPrincipals: cc.principals,
-		ValidAfter:      uint64(cc.validAfter.Unix()),
-		ValidBefore:     uint64(cc.validBefore.Unix()),
+		CertType:        ssh.UserCert,
+		KeyId:           certRequest.KeyID,
+		ValidPrincipals: []string{certRequest.RemoteUser},
+		ValidAfter:      uint64(certRequest.ValidAfter.Unix()),
+		ValidBefore:     uint64(certRequest.ValidBefore.Unix()),
 		Permissions:     perms,
 	}
 
@@ -143,6 +144,26 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Sign user key", "details": err.Error()})
 	}
 	signedKey := ssh.MarshalAuthorizedKey(cert)
+
+	// storing certificate in database
+	dbc := h.db.Create(certRequest)
+	if h.db.NewRecord(certRequest) {
+		return c.JSON(http.StatusBadRequest,
+			map[string]string{"result": "fail", "details": dbc.Error.Error()})
+	}
+
+	// sending auditRecord
+	finishTime := time.Now()
+	go func() {
+		h.auditChannel <- types.AuditRecord{
+			UID:       uuid.Must(uuid.NewV4()),
+			StartTime: initTime,
+			EndTime:   finishTime,
+			Kind:      "cert.create",
+			TargetUID: certRequest.UID,
+			TargetID:  certRequest.ID,
+		}
+	}()
 
 	return c.String(http.StatusOK, string(signedKey))
 }
