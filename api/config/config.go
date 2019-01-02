@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/viper"
@@ -34,30 +35,39 @@ func Check(config viper.Viper) error {
 
 	// Check envs
 	if len(os.Getenv("PORT")) == 0 {
+		fmt.Printf("Environment variable GSH_PORT not defined\n")
 		fails++
 	}
 	if config.GetInt("CHANNEL_SIZE") == 0 {
+		fmt.Printf("Environment variable GSH_CHANNEL_SIZE not defined\n")
 		fails++
 	}
 	if config.GetInt("WORKERS_AUDIT") == 0 {
+		fmt.Printf("Environment variable GSH_WORKERS_AUDIT not defined\n")
 		fails++
 	}
 	if config.GetInt("WORKERS_LOG") == 0 {
+		fmt.Printf("Environment variable GSH_WORKERS_LOG not defined\n")
 		fails++
 	}
 	if config.GetInt("CERT_DURATION") == 0 {
+		fmt.Printf("Environment variable GSH_CERT_DURATION not defined\n")
 		fails++
 	}
 	if len(config.GetString("CA_PRIVATE_KEY")) == 0 {
+		fmt.Printf("Environment variable GSH_CA_PRIVATE_KEY not defined\n")
 		fails++
 	}
 	if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
+		fmt.Printf("Environment variable GSH_CA_PUBLIC_KEY not defined\n")
 		fails++
 	}
 	if len(config.GetString("STORAGE_DRIVER")) == 0 {
+		fmt.Printf("Environment variable GSH_STORAGE_DRIVER not defined\n")
 		fails++
 	}
 	if len(config.GetString("STORAGE_URI")) == 0 {
+		fmt.Printf("Environment variable GSH_STORAGE_URI not defined\n")
 		fails++
 	}
 
