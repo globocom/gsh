@@ -1,0 +1,23 @@
+{
+    "port": 8000,
+    "channel_size": 100,
+    "workers":{
+        "workers_audit": 1,
+        "workers_log": 1
+    },
+    "cert_duration": 600000000000,
+    "storage": {
+        "storage_driver": "mysql",
+        "storage_max_attempts": 20,
+        "storage_max_connections": 20,
+        "storage_debug": false
+    },
+    "ca_authority": {
+        "external": true,
+        "endpoint": "https://example.com",
+        "public_key_url": "/public_key",
+        "signer_url": "/sign",
+        "login_url": "/login",
+        "role_id": "vault role id"
+    }
+}

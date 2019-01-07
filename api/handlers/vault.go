@@ -9,14 +9,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 )
 
 type Vault struct {
-	Url      string
-	token    string
 	roleId   string
 	secretId string
+	config   viper.Viper
+	token    string
 }
 
 type authResponse struct {
@@ -65,7 +66,7 @@ func (v *Vault) GetToken() error {
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	req, _ := http.NewRequest("POST", "https://"+v.Url+"/v1/auth/approle/login", bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority.endpoint")+v.config.GetString("ca_authority.login_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -84,12 +85,13 @@ func (v *Vault) GetToken() error {
 }
 
 func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
+	v.GetToken()
 	data := make(map[string]string)
 	data["public_key"] = string(ssh.MarshalAuthorizedKey(c.Key))
 	data["valid_principals"] = "root"
 	data["cert_type"] = "user"
 	jsonData, _ := json.Marshal(data)
-	req, _ := http.NewRequest("POST", "https://"+v.Url+"/v1/ssh-client-signer/sign/teste-ssh", bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority.endpoint")+v.config.GetString("ca_authority.signer_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Vault-Token", v.token)
 	client := &http.Client{
@@ -111,8 +113,8 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	return sshCertificate.Data.SignedKey, nil
 }
 
-func (v *Vault) GetExternalPublicKey(url string) (string, error) {
-	resp, err := http.Get(v.Url)
+func (v *Vault) GetExternalPublicKey() (string, error) {
+	resp, err := http.Get(v.config.GetString("ca_authority.endpoint") + v.config.GetString("ca_authority.public_key_url"))
 	if err != nil {
 		return "-1", err
 	}

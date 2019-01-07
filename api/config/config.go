@@ -15,15 +15,14 @@ func Init() viper.Viper {
 		os.Setenv("PORT", "8000")
 	}
 	config := viper.New()
-	config.SetDefault("CHANNEL_SIZE", 100)
-	config.SetDefault("WORKERS_AUDIT", 1)
-	config.SetDefault("WORKERS_LOG", 1)
-	config.SetDefault("CERT_DURATION", 600000000000) // 600 secs
-	config.SetDefault("STORAGE_DRIVER", "MYSQL")
+	config.SetConfigType("json")
+	config.SetConfigName("config")
+	config.AddConfigPath("config/")
+	err := config.ReadInConfig() // Find and read the config file
+	if err != nil {              // Handle errors reading the config file
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
 	config.SetDefault("STORAGE_URI", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
-	config.SetDefault("STORAGE_MAX_ATTEMPTS", 20)
-	config.SetDefault("STORAGE_MAX_CONNECTIONS", 20)
-	config.SetDefault("STORAGE_DEBUG", false)
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -38,37 +37,40 @@ func Check(config viper.Viper) error {
 		fmt.Printf("Environment variable GSH_PORT not defined\n")
 		fails++
 	}
-	if config.GetInt("CHANNEL_SIZE") == 0 {
-		fmt.Printf("Environment variable GSH_CHANNEL_SIZE not defined\n")
-		fails++
-	}
-	if config.GetInt("WORKERS_AUDIT") == 0 {
-		fmt.Printf("Environment variable GSH_WORKERS_AUDIT not defined\n")
-		fails++
-	}
-	if config.GetInt("WORKERS_LOG") == 0 {
-		fmt.Printf("Environment variable GSH_WORKERS_LOG not defined\n")
-		fails++
-	}
-	if config.GetInt("CERT_DURATION") == 0 {
-		fmt.Printf("Environment variable GSH_CERT_DURATION not defined\n")
-		fails++
-	}
-	if len(config.GetString("CA_PRIVATE_KEY")) == 0 {
-		fmt.Printf("Environment variable GSH_CA_PRIVATE_KEY not defined\n")
-		fails++
-	}
-	if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
-		fmt.Printf("Environment variable GSH_CA_PUBLIC_KEY not defined\n")
-		fails++
-	}
-	if len(config.GetString("STORAGE_DRIVER")) == 0 {
-		fmt.Printf("Environment variable GSH_STORAGE_DRIVER not defined\n")
-		fails++
-	}
 	if len(config.GetString("STORAGE_URI")) == 0 {
 		fmt.Printf("Environment variable GSH_STORAGE_URI not defined\n")
 		fails++
+	}
+	if config.GetBool("ca_authority.external") {
+		if len(config.GetString("ca_authority.signer_url")) == 0 {
+			fmt.Println("CA Authority signer_url not set in config file")
+			fails++
+		}
+		if len(config.GetString("ca_authority.public_key_url")) == 0 {
+			fmt.Println("CA Authority public_key_url not set in config file")
+			fails++
+		}
+		if len(config.GetString("ca_authority.endpoint")) == 0 {
+			fmt.Println("CA Authority endpoint not set in config file")
+			fails++
+		}
+		if len(config.GetString("ca_authority.role_id")) == 0 {
+			fmt.Println("CA Authority role_id not set in config file")
+			fails++
+		}
+		if len(config.GetString("VAULT_SECRET_ID")) == 0 {
+			fmt.Printf("Environment variable GSH_VAULT_SECRET_ID not defined\n")
+			fails++
+		}
+	} else {
+		if len(config.GetString("CA_PRIVATE_KEY")) == 0 {
+			fmt.Printf("Environment variable GSH_CA_PRIVATE_KEY not defined\n")
+			fails++
+		}
+		if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
+			fmt.Printf("Environment variable GSH_CA_PUBLIC_KEY not defined\n")
+			fails++
+		}
 	}
 
 	if fails > 0 {
