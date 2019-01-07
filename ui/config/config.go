@@ -35,8 +35,8 @@ func Check(config viper.Viper) error {
 	}
 
 	if config.GetString("AUTH_TYPE") == "OPENID" {
-		if len(config.GetString("AUTH_REALM")) == 0 {
-			fmt.Println("Environment variable GSH_AUTH_REALM not defined")
+		if len(config.GetString("AUTH_REALM_URL")) == 0 {
+			fmt.Println("Environment variable GSH_AUTH_REALM_URL not defined")
 			fails++
 		}
 		if len(config.GetString("AUTH_SERVER_URL")) == 0 {
@@ -53,6 +53,13 @@ func Check(config viper.Viper) error {
 		}
 		if len(config.GetString("AUTH_CREDENTIALS_SECRET")) == 0 {
 			fmt.Println("Environment variable GSH_AUTH_CREDENTIALS_SECRET not defined")
+			fails++
+		}
+	}
+
+	if config.GetString("SESSION_STORE") == "COOKIE" {
+		if len(config.GetString("SESSION_STORE_SECRET")) == 0 {
+			fmt.Println("Environment variable GSH_SESSION_STORE_SECRET not defined")
 			fails++
 		}
 	}
