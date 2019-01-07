@@ -50,3 +50,5 @@ This project is based on a number of other similar projects.
 
 - https://github.com/mikesmitty/curse
 - https://github.com/Netflix/bless
+- https://github.com/uber/pam-ussh
+- https://code.fb.com/security/scalable-and-secure-access-with-ssh/
