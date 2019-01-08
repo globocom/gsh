@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
+	"html/template"
+	"io"
 	"os"
 
 	oidc "github.com/coreos/go-oidc"
@@ -14,6 +17,23 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// TemplateRegistry defines the template registry struct
+// Ref: https://medium.freecodecamp.org/how-to-setup-a-nested-html-template-in-the-go-echo-web-framework-670f16244bb4
+type TemplateRegistry struct {
+	templates map[string]*template.Template
+}
+
+// Render implement e.Renderer interface
+// Ref: https://medium.freecodecamp.org/how-to-setup-a-nested-html-template-in-the-go-echo-web-framework-670f16244bb4
+func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	tmpl, ok := t.templates[name]
+	if !ok {
+		err := errors.New("Template not found -> " + name)
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "base.html", data)
+}
+
 func main() {
 	// Reading configuration
 	configuration := config.Init()
@@ -24,6 +44,14 @@ func main() {
 
 	// Init echo framework
 	e := echo.New()
+
+	// Instantiate a template registry with an array of template set
+	// Ref: https://medium.freecodecamp.org/how-to-setup-a-nested-html-template-in-the-go-echo-web-framework-670f16244bb4
+	templates := make(map[string]*template.Template)
+	templates["request.html"] = template.Must(template.ParseFiles("views/request.html", "views/base.html"))
+	e.Renderer = &TemplateRegistry{
+		templates: templates,
+	}
 
 	// Enable cookie store
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(configuration.GetString("SESSION_STORE_SECRET")))))
@@ -55,6 +83,7 @@ func main() {
 
 	e.GET("/auth", appHandler.Auth)
 	e.GET("/auth/callback", appHandler.AuthCallback)
+	e.GET("/", appHandler.CertificatePage)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
