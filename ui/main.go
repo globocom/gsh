@@ -30,20 +30,20 @@ func main() {
 
 	// Configure an OpenID Connect aware OAuth2 client.
 	ctx := context.Background()
-	provider, err := oidc.NewProvider(ctx, configuration.GetString("AUTH_REALM_URL"))
+	oauth2provider, err := oidc.NewProvider(ctx, configuration.GetString("AUTH_REALM_URL"))
 	if err != nil {
 		panic(err)
 	}
-	oauth2Config := oauth2.Config{
+	oauth2config := oauth2.Config{
 		ClientID:     configuration.GetString("AUTH_RESOURCE"),
 		ClientSecret: configuration.GetString("AUTH_CREDENTIALS_SECRET"),
 		RedirectURL:  configuration.GetString("AUTH_REDIRECT"),
-		Endpoint:     provider.Endpoint(),
+		Endpoint:     oauth2provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID},
 	}
 
 	// Creating handler with pointers to persistent data
-	appHandler := handlers.NewAppHandler(configuration, oauth2Config)
+	appHandler := handlers.NewAppHandler(configuration, oauth2config, *oauth2provider)
 
 	// Middlewares
 	e.Use(middleware.Logger())
@@ -54,6 +54,7 @@ func main() {
 	e.GET("/status/config", appHandler.StatusConfig)
 
 	e.GET("/auth", appHandler.Auth)
+	e.GET("/auth/callback", appHandler.AuthCallback)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
