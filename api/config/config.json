@@ -19,5 +19,10 @@
         "signer_url": "/sign",
         "login_url": "/login",
         "role_id": "vault role id"
+    },
+    "oidc_conf": {
+        "base_url": "https://oidc.example.com",
+        "realm": "oidc",
+        "audience": "gsh"
     }
 }

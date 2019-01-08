@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -103,7 +102,6 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println(resp.StatusCode)
 		return "-1", errors.New("Failed to sign ssh certificate, not 200 ok")
 	}
 	sshCertificate := sshCertificate{}

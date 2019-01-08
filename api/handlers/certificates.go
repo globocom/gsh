@@ -30,7 +30,8 @@ type certConfig struct {
 // 	"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4SgDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p3061Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcKXLl manoel.junior@twofish.local",
 // 	"remote_user":"jim",
 //  "remote_host":"192.168.2.105",
-// 	"user_ip":"192.168.2.5"
+// 	"user_ip":"192.168.2.5",
+//	"jwt": "...."
 // }
 //
 // - Output sample
@@ -57,7 +58,6 @@ type certConfig struct {
 // +xcTVkFgWWPcml7CFiGwFhbui4w==
 //
 func (h AppHandler) CertCreate(c echo.Context) error {
-	v := Vault{h.config.GetString("ca_authority.role_id"), h.config.GetString("VAULT_SECRET_ID"), h.config, ""}
 	initTime := time.Now()
 
 	// Importing data requested in types.CertRequest struct
@@ -79,12 +79,19 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Importing data requested in types.CertRequest struct", "details": err.Error()})
 	}
-
+	//Validating JWT before any other action
+	var err error
+	err = ValidateJwt(certRequest.JWT, h.config)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized,
+			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+	//Initializing vault
+	v := Vault{h.config.GetString("ca_authority.role_id"), h.config.GetString("VAULT_SECRET_ID"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
 	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("CERT_DURATION"))
 	// Parse user key
-	var err error
 	certRequest.PublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(certRequest.Key))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest,
