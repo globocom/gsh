@@ -68,6 +68,11 @@ func Check(config viper.Viper) error {
 		}
 	}
 
+	if len(config.GetString("API_ENDPOINT")) == 0 {
+		fmt.Println("Environment variable GSH_API_ENDPOINT not defined")
+		fails++
+	}
+
 	if fails > 0 {
 		return errors.New("Configuration error")
 	}

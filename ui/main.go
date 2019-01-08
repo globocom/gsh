@@ -84,6 +84,7 @@ func main() {
 	e.GET("/auth", appHandler.Auth)
 	e.GET("/auth/callback", appHandler.AuthCallback)
 	e.GET("/", appHandler.CertificatePage)
+	e.POST("/", appHandler.CertificateRequest)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

@@ -3,6 +3,12 @@
 {{end}}
 
 {{define "body"}}
-  <h1>{{index . "msg"}}</h1>
-  <h2>Content.</h2>
+    <form action="/" method="POST" autocomplete="off">
+        IP Addr (remote_host):<br>
+            <input type="text" name="remote_host"><br>
+        SSH Public Key:<br>
+            <textarea name="key" rows="4" cols="40"></textarea><br>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
 {{end}}
