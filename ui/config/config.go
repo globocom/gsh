@@ -55,6 +55,10 @@ func Check(config viper.Viper) error {
 			fmt.Println("Environment variable GSH_AUTH_CREDENTIALS_SECRET not defined")
 			fails++
 		}
+		if len(config.GetString("AUTH_USERNAME_CLAIM")) == 0 {
+			fmt.Println("Environment variable GSH_AUTH_USERNAME_CLAIM not defined")
+			fails++
+		}
 	}
 
 	if config.GetString("SESSION_STORE") == "COOKIE" {

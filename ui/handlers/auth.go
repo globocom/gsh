@@ -53,14 +53,18 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Verify id_token error")
 	}
 
+	// Get info about user
 	userInfo, err := h.oauth2provider.UserInfo(c.Request().Context(), oauth2.StaticTokenSource(oauth2Token))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Verify id_token error")
 	}
+	claims := map[string]string{}
+	userInfo.Claims(&claims)
 
-	// save raw
+	// save session values
 	sess.Values["rawIDToken"] = rawIDToken
 	sess.Values["subject"] = userInfo.Subject
+	sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")] = claims[h.config.GetString("AUTH_USERNAME_CLAIM")]
 
 	// save session
 	sess.Save(c.Request(), c.Response())
