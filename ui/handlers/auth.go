@@ -12,7 +12,7 @@ import (
 
 // Auth is a method that provides authentication flow using OpenID Connect
 func (h AppHandler) Auth(c echo.Context) error {
-	sess, _ := session.Get("session", c)
+	sess, _ := session.Get("gsh", c)
 
 	// generate radom state
 	state := random.String(32)
@@ -26,7 +26,7 @@ func (h AppHandler) Auth(c echo.Context) error {
 
 // AuthCallback is a method that provides authentication flow using OpenID Connect
 func (h AppHandler) AuthCallback(c echo.Context) error {
-	sess, _ := session.Get("session", c)
+	sess, _ := session.Get("gsh", c)
 
 	// verify state
 	stateCookie := sess.Values["state"].(string)
