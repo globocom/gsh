@@ -113,7 +113,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	userFingerprint := ssh.FingerprintLegacyMD5(certRequest.PublicKey)
 
 	//here is where differs from an external signer and a local signer
-	if h.config.GetBool("EXTERNAL_AUTHORITY") {
+	if h.config.GetBool("ca_authority.external") {
 		externalPubKey, err := v.GetExternalPublicKey()
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError,
