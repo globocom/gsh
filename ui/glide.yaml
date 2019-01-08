@@ -1,0 +1,24 @@
+package: github.com/globocom/gsh/ui
+import:
+- package: github.com/coreos/go-oidc
+  version: ^2.0.0
+- package: github.com/globocom/gsh
+  subpackages:
+  - types
+- package: github.com/gorilla/sessions
+  version: ^1.1.3
+- package: github.com/labstack/echo
+  version: ^3.3.8
+  subpackages:
+  - middleware
+- package: github.com/labstack/echo-contrib
+  version: ^0.5.2
+  subpackages:
+  - session
+- package: github.com/labstack/gommon
+  version: ^0.2.8
+  subpackages:
+  - random
+- package: github.com/spf13/viper
+  version: ^1.3.1
+- package: golang.org/x/oauth2
