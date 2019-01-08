@@ -21,7 +21,7 @@ func (h AppHandler) Auth(c echo.Context) error {
 	// save session
 	sess.Save(c.Request(), c.Response())
 
-	return c.Redirect(http.StatusFound, h.oauth2.AuthCodeURL(state))
+	return c.Redirect(http.StatusFound, h.oauth2config.AuthCodeURL(state))
 }
 
 // AuthCallback is a method that provides authentication flow using OpenID Connect
@@ -35,7 +35,7 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Invalid state")
 	}
 
-	oauth2Token, err := h.oauth2.Exchange(c.Request().Context(), c.Request().URL.Query().Get("code"))
+	oauth2Token, err := h.oauth2config.Exchange(c.Request().Context(), c.Request().URL.Query().Get("code"))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Error converting an authorization code into a token")
 	}

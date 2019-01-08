@@ -9,15 +9,15 @@ import (
 // AppHandler is a struct that maintains persistence of objects used in handlers
 type AppHandler struct {
 	config         viper.Viper
-	oauth2         oauth2.Config
+	oauth2config   oauth2.Config
 	oauth2provider oidc.Provider
 }
 
 // NewAppHandler return a new pointer of user struct
-func NewAppHandler(config viper.Viper, oauth2 oauth2.Config, oauth2provider oidc.Provider) *AppHandler {
+func NewAppHandler(config viper.Viper, oauth2config oauth2.Config, oauth2provider oidc.Provider) *AppHandler {
 	return &AppHandler{
 		config:         config,
-		oauth2:         oauth2,
+		oauth2config:   oauth2config,
 		oauth2provider: oauth2provider,
 	}
 }
