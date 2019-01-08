@@ -20,9 +20,6 @@ type CertRequest struct {
 	ValidBefore time.Time     `json:"-" gorm:"column:valid_before;index:idx_vb"`
 	PublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
 
-	//Signed JWT from OIDC provider
-	JWT string `json:"jwt"`
-
 	// CA used in certificate sign
 	CAPublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
 	CAFingerprint string        `json:"-" gorm:"column:ca_fingerprint"`
