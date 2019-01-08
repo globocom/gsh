@@ -58,5 +58,12 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Verify id_token error")
 	}
 
-	return c.JSON(http.StatusOK, userInfo)
+	// save raw
+	sess.Values["rawIDToken"] = rawIDToken
+	sess.Values["subject"] = userInfo.Subject
+
+	// save session
+	sess.Save(c.Request(), c.Response())
+
+	return c.Redirect(http.StatusFound, "/")
 }
