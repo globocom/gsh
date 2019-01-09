@@ -168,7 +168,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 	var signedKey string
 	// Sign user key
-	if h.config.GetBool("EXTERNAL_AUTHORITY") {
+	if h.config.GetBool("ca_authority.external") {
 		signedKey, err = v.SignSshCertificate(cert)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
