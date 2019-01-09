@@ -26,6 +26,13 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 	oauth2verifier := h.oauth2provider.Verifier(&oidc.Config{ClientID: h.config.GetString("AUTH_RESOURCE")})
 	_, err := oauth2verifier.Verify(c.Request().Context(), sess.Values["rawIDToken"].(string))
 	if err != nil {
+		// prevent user inserted information lost
+		sess.Values["user_key"] = c.FormValue("user_key")
+		sess.Values["remote_host"] = c.FormValue("remote_host")
+
+		// save session
+		sess.Save(c.Request(), c.Response())
+
 		return c.Redirect(http.StatusFound, "/auth")
 	}
 
@@ -36,6 +43,8 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 		"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 		"user_ip":     c.RealIP(),
 		"csrf":        c.Get("csrf"),
+		"remote_host": sess.Values["remote_host"],
+		"user_key":    sess.Values["user_key"],
 	})
 }
 
@@ -50,6 +59,13 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	oauth2verifier := h.oauth2provider.Verifier(&oidc.Config{ClientID: h.config.GetString("AUTH_RESOURCE")})
 	_, err := oauth2verifier.Verify(c.Request().Context(), sess.Values["rawIDToken"].(string))
 	if err != nil {
+		// prevent user inserted information lost
+		sess.Values["user_key"] = c.FormValue("user_key")
+		sess.Values["remote_host"] = c.FormValue("remote_host")
+
+		// save session
+		sess.Save(c.Request(), c.Response())
+
 		return c.Redirect(http.StatusFound, "/auth")
 	}
 
@@ -116,6 +132,11 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 		})
 	}
 	defer resp.Body.Close()
+
+	// save session
+	sess.Values["user_key"] = nil
+	sess.Values["remote_host"] = nil
+	sess.Save(c.Request(), c.Response())
 
 	// Download file with SSH certificate
 	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pem"))
