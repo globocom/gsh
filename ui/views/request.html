@@ -33,6 +33,12 @@
                     <label for="remote_user">Remote user</label>
                 </div>
             </div>
+            <div class="row">
+                    <div class="input-field col s12">
+                        <input disabled value="{{index . "user_ip"}}" id="user_ip" name="user_ip" type="text" class="validate">
+                        <label for="user_ip">User IP</label>
+                    </div>
+            </div>
 
             <input type="hidden" name="csrf" value="{{index . "csrf"}}">
             <div class="row">

@@ -34,6 +34,7 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 	return c.Render(http.StatusOK, "request.html", map[string]interface{}{
 		"name":        "Generate your SSH certificate",
 		"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+		"user_ip":     c.RealIP(),
 		"csrf":        c.Get("csrf"),
 	})
 }
