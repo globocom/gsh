@@ -75,6 +75,9 @@ func main() {
 
 	// Middlewares
 	e.Use(middleware.Logger())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "form:csrf",
+	}))
 
 	// Routes (live test if application crash, ready test backend services)
 	e.GET("/status/live", handlers.StatusLive)

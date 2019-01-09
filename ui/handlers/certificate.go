@@ -34,6 +34,7 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 	return c.Render(http.StatusOK, "request.html", map[string]interface{}{
 		"name": "Certificate Request",
 		"msg":  "Your form!",
+		"csrf": c.Get("csrf"),
 	})
 }
 

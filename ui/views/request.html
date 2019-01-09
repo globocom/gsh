@@ -9,6 +9,7 @@
         SSH Public Key:<br>
             <textarea name="key" rows="4" cols="40"></textarea><br>
         <br>
+        <input type="hidden" name="csrf" value="{{index . "csrf"}}">
         <input type="submit" value="Submit">
     </form>
 {{end}}
