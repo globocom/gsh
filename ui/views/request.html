@@ -12,7 +12,9 @@
 
             {{if index . "error"}}
             <div class="row">
-                    <div class="card-panel red darken-1">{{index . "error"}}</div>
+                <div class="card-panel red">
+                    <span class="teal-text text-lighten-5">{{index . "error"}}</span>
+                </div>
             </div>
             {{end}}
 
