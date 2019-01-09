@@ -64,8 +64,8 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 
 	// prepare JSON to gsh api
 	certRequest := types.CertRequest{
-		Key:        c.FormValue("ssh_public_key"),
-		RemoteHost: c.FormValue("ip"),
+		Key:        c.FormValue("key"),
+		RemoteHost: c.FormValue("remote_host"),
 		RemoteUser: sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 		UserIP:     c.RealIP(),
 	}
