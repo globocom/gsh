@@ -1,0 +1,68 @@
+{{define "title"}}
+  GSH | {{index . "name"}}
+{{end}}
+
+{{define "body"}}
+<div class="container">
+        <h2>{{index . "name"}}</h2>
+    </div>
+    <div class="container">
+
+        <form class="col s12" action="/" method="POST" autocomplete="off">
+
+            {{if index . "error"}}
+            <div class="row">
+                <div class="card-panel red">
+                    <span class="teal-text text-lighten-5">{{index . "error"}}</span>
+                </div>
+            </div>
+            {{end}}
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <input value="{{index . "remote_host"}}" id="remote_host" name="remote_host" type="text" class="validate">
+                    <label for="remote_host">Remote host</label>
+                    <span class="helper-text">IP address of the remote host that will be access via SSH</span>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="input-field col s12">
+                    <textarea id="user_key" name="user_key" class="materialize-textarea">{{index . "user_key"}}</textarea>
+                    <label for="user_key">SSH Public Key</label>
+                    <span class="helper-text">ssh-rsa AAA...ZZZ== user@machine.local</span>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input disabled value="{{index . "remote_user"}}" id="remote_user" name="remote_user" type="text" class="validate">
+                    <label for="remote_user">Remote user</label>
+                    <span class="helper-text">User that will be used inside the remote host</span>
+                </div>
+            </div>
+            <div class="row">
+                    <div class="input-field col s12">
+                        <input disabled value="{{index . "user_ip"}}" id="user_ip" name="user_ip" type="text" class="validate">
+                        <label for="user_ip">User IP</label>
+                        <span class="helper-text">Your local IP addres</span>
+                    </div>
+            </div>
+
+            <input type="hidden" name="csrf" value="{{index . "csrf"}}">
+            <div class="row">
+                <button class="btn waves-effect waves-light" type="submit" name="action">
+                  <i class="material-icons left">file_download</i>
+                  Download certificate
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    </div>
+{{end}}
+
+
+

@@ -1,0 +1,26 @@
+{{define "title"}}
+  GSH | {{index . "name"}}
+{{end}}
+
+{{define "body"}}
+<div class="container">
+        <h2>{{index . "name"}}</h2>
+    </div>
+    <div class="container">
+
+        <form class="col s12" action="/" method="GET" autocomplete="off">
+            <div class="row">
+                <button class="btn waves-effect waves-light" type="submit" name="action">
+                  Login
+                  <i class="material-icons right">send</i>
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    </div>
+{{end}}
+
+
+
