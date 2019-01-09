@@ -11,7 +11,7 @@ import (
 type CertRequest struct {
 	UID        uuid.UUID `json:"uid,omitempty" gorm:"column:uid;index:idx_uid"`
 	Command    string    `json:"command,omitempty" gorm:"column:command"`
-	Key        string    `json:"key,omitempty" gorm:"column:key"`
+	Key        string    `json:"key,omitempty" gorm:"column:key" sql:"type:text"`
 	RemoteUser string    `json:"remote_user,omitempty" gorm:"column:remote_user;index:idx_remote_user"`
 	RemoteHost string    `json:"remote_host,omitempty" gorm:"column:remote_host;index:idx_remote_host"`
 	UserIP     string    `json:"user_ip,omitempty" gorm:"column:user_ip;index:idx_user_ip"`
