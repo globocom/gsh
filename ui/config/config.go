@@ -39,6 +39,10 @@ func Check(config viper.Viper) error {
 			fmt.Println("Environment variable GSH_AUTH_REALM_URL not defined")
 			fails++
 		}
+		if len(config.GetString("AUTH_REDIRECT")) == 0 {
+			fmt.Println("Environment variable GSH_AUTH_REDIRECT not defined")
+			fails++
+		}
 		if len(config.GetString("AUTH_RESOURCE")) == 0 {
 			fmt.Println("Environment variable GSH_AUTH_RESOURCE not defined")
 			fails++
