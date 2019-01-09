@@ -49,6 +49,7 @@ func main() {
 	// Ref: https://medium.freecodecamp.org/how-to-setup-a-nested-html-template-in-the-go-echo-web-framework-670f16244bb4
 	templates := make(map[string]*template.Template)
 	templates["request.html"] = template.Must(template.ParseFiles("views/request.html", "views/base.html"))
+	templates["logout.html"] = template.Must(template.ParseFiles("views/logout.html", "views/base.html"))
 	e.Renderer = &TemplateRegistry{
 		templates: templates,
 	}
@@ -86,6 +87,7 @@ func main() {
 
 	e.GET("/auth", appHandler.Auth)
 	e.GET("/auth/callback", appHandler.AuthCallback)
+	e.GET("/auth/logout", appHandler.AuthLogout)
 	e.GET("/", appHandler.CertificatePage)
 	e.POST("/", appHandler.CertificateRequest)
 

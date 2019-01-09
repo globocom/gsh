@@ -71,3 +71,20 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 
 	return c.Redirect(http.StatusFound, "/")
 }
+
+// AuthLogout is a method that logout user expiring gsh cookie
+func (h AppHandler) AuthLogout(c echo.Context) error {
+	sess, _ := session.Get("gsh", c)
+
+	// expire cookie
+	sess.Options.MaxAge = -1
+
+	// save session
+	sess.Save(c.Request(), c.Response())
+
+	// Please note the the second parameter "logout.html" is the template name and should
+	// be equal to one of the keys in the TemplateRegistry array defined in main.go
+	return c.Render(http.StatusOK, "logout.html", map[string]interface{}{
+		"name": "You are logged out!",
+	})
+}
