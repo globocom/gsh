@@ -32,9 +32,9 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 	// Please note the the second parameter "request.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go
 	return c.Render(http.StatusOK, "request.html", map[string]interface{}{
-		"name": "Certificate Request",
-		"msg":  "Your form!",
-		"csrf": c.Get("csrf"),
+		"name":        "Generate your SSH certificate",
+		"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+		"csrf":        c.Get("csrf"),
 	})
 }
 

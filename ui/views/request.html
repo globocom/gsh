@@ -3,13 +3,50 @@
 {{end}}
 
 {{define "body"}}
-    <form action="/" method="POST" autocomplete="off">
-        IP Addr (remote_host):<br>
-            <input type="text" name="remote_host"><br>
-        SSH Public Key:<br>
-            <textarea name="key" rows="4" cols="40"></textarea><br>
-        <br>
-        <input type="hidden" name="csrf" value="{{index . "csrf"}}">
-        <input type="submit" value="Submit">
-    </form>
+<div class="container">
+        <h2>{{index . "name"}}</h2>
+    </div>
+    <div class="container">
+
+        <form class="col s12" action="/" method="POST" autocomplete="off">
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="remote_host" name="remote_host" type="text" class="validate">
+                    <label for="remote_host">Remote host</label>
+                    <span class="helper-text">IP address of the host that will be access via SSH</span>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="input-field col s12">
+                    <textarea id="key" name="key" class="materialize-textarea"></textarea>
+                    <label for="key">SSH Public Key</label>
+                    <span class="helper-text">ssh-rsa AAA...ZZZ== user@machine.local</span>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input disabled value="{{index . "remote_user"}}" id="remote_user" name="remote_user" type="text" class="validate">
+                    <label for="remote_user">Remote user</label>
+                </div>
+            </div>
+
+            <input type="hidden" name="csrf" value="{{index . "csrf"}}">
+            <div class="row">
+                <button class="btn waves-effect waves-light" type="submit" name="action">
+                  <i class="material-icons left">cloud_download</i>
+                  Download certificate
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    </div>
 {{end}}
+
+
+
