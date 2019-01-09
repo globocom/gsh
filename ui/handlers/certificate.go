@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -90,5 +91,8 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	}
 	defer resp.Body.Close()
 
-	return c.String(http.StatusOK, string(body))
+	// Download file with SSH certificate
+	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pem"))
+	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pem", time.Now(), bytes.NewReader(body))
+	return nil
 }
