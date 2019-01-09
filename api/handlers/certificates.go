@@ -179,7 +179,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		sshCASigner, err := ssh.ParsePrivateKey([]byte(h.config.GetString("CA_PRIVATE_KEY")))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
-				map[string]string{"result": "fail", "message": "Parse user key", "details": err.Error()})
+				map[string]string{"result": "fail", "message": "Parse private ca key", "details": err.Error()})
 		}
 		err = cert.SignCert(rand.Reader, sshCASigner)
 		if err != nil {
