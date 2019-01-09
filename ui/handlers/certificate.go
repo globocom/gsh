@@ -80,16 +80,34 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := netClient.Do(req)
 	if err != nil {
-		return c.String(http.StatusGatewayTimeout, "GSH API error: "+err.Error())
+		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
+			"name":        "Generate your SSH certificate",
+			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"user_ip":     c.RealIP(),
+			"csrf":        c.Get("csrf"),
+			"error":       "GSH API error: " + err.Error(),
+		})
 	}
 
 	// Read body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return c.String(http.StatusGatewayTimeout, "Body parser error: "+err.Error())
+		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
+			"name":        "Generate your SSH certificate",
+			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"user_ip":     c.RealIP(),
+			"csrf":        c.Get("csrf"),
+			"error":       "GSH API error: " + err.Error(),
+		})
 	}
 	if resp.StatusCode != http.StatusOK {
-		c.String(http.StatusGatewayTimeout, "GSH error ("+resp.Status+"): "+string(body))
+		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
+			"name":        "Generate your SSH certificate",
+			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"user_ip":     c.RealIP(),
+			"csrf":        c.Get("csrf"),
+			"error":       "GSH API error (" + resp.Status + "): " + string(body),
+		})
 	}
 	defer resp.Body.Close()
 

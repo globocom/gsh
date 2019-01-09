@@ -10,6 +10,12 @@
 
         <form class="col s12" action="/" method="POST" autocomplete="off">
 
+            {{if index . "error"}}
+            <div class="row">
+                    <div class="card-panel red">{{index . "error"}}</div>
+            </div>
+            {{end}}
+
             <div class="row">
                 <div class="input-field col s12">
                     <input id="remote_host" name="remote_host" type="text" class="validate">
