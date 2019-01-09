@@ -14,7 +14,7 @@
                 <div class="input-field col s12">
                     <input id="remote_host" name="remote_host" type="text" class="validate">
                     <label for="remote_host">Remote host</label>
-                    <span class="helper-text">IP address of the host that will be access via SSH</span>
+                    <span class="helper-text">IP address of the remote host that will be access via SSH</span>
                 </div>
             </div>
 
@@ -31,12 +31,14 @@
                 <div class="input-field col s12">
                     <input disabled value="{{index . "remote_user"}}" id="remote_user" name="remote_user" type="text" class="validate">
                     <label for="remote_user">Remote user</label>
+                    <span class="helper-text">User that will be used inside the remote host</span>
                 </div>
             </div>
             <div class="row">
                     <div class="input-field col s12">
                         <input disabled value="{{index . "user_ip"}}" id="user_ip" name="user_ip" type="text" class="validate">
                         <label for="user_ip">User IP</label>
+                        <span class="helper-text">Your local IP addres</span>
                     </div>
             </div>
 
