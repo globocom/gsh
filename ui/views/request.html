@@ -18,7 +18,7 @@
 
             <div class="row">
                 <div class="input-field col s12">
-                    <input id="remote_host" name="remote_host" type="text" class="validate">
+                    <input value="{{index . "remote_host"}}" id="remote_host" name="remote_host" type="text" class="validate">
                     <label for="remote_host">Remote host</label>
                     <span class="helper-text">IP address of the remote host that will be access via SSH</span>
                 </div>
@@ -27,8 +27,8 @@
             <div class="row">
 
                 <div class="input-field col s12">
-                    <textarea id="key" name="key" class="materialize-textarea"></textarea>
-                    <label for="key">SSH Public Key</label>
+                    <textarea id="user_key" name="user_key" class="materialize-textarea">{{index . "user_key"}}</textarea>
+                    <label for="user_key">SSH Public Key</label>
                     <span class="helper-text">ssh-rsa AAA...ZZZ== user@machine.local</span>
                 </div>
 

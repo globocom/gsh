@@ -67,7 +67,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 
 	// prepare JSON to gsh api
 	certRequest := types.CertRequest{
-		Key:        c.FormValue("key"),
+		Key:        c.FormValue("user_key"),
 		RemoteHost: c.FormValue("remote_host"),
 		RemoteUser: sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 		UserIP:     c.RealIP(),
@@ -85,6 +85,8 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
+			"remote_host": certRequest.RemoteHost,
+			"user_key":    certRequest.Key,
 			"error":       "GSH API error: " + err.Error(),
 		})
 	}
@@ -97,6 +99,8 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
+			"remote_host": certRequest.RemoteHost,
+			"user_key":    certRequest.Key,
 			"error":       "GSH API error: " + err.Error(),
 		})
 	}
@@ -106,6 +110,8 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
+			"remote_host": certRequest.RemoteHost,
+			"user_key":    certRequest.Key,
 			"error":       "GSH API error (" + resp.Status + "): " + string(body),
 		})
 	}
