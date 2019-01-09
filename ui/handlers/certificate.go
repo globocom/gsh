@@ -53,12 +53,12 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout: time.Second,
+			Timeout: 10 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: time.Second,
 	}
 	var netClient = &http.Client{
-		Timeout:   time.Second,
+		Timeout:   10 * time.Second,
 		Transport: netTransport,
 	}
 
