@@ -87,7 +87,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Printf("Error reading home folder: %s (%s)\n", home, err.Error())
+			fmt.Printf("Client error reading home folder: %s (%s)\n", home, err.Error())
 			os.Exit(1)
 		}
 
@@ -96,7 +96,7 @@ func initConfig() {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			err := os.Mkdir(path, 0750)
 			if err != nil {
-				fmt.Printf("Error creating config folder: %s (%s)\n", path, err.Error())
+				fmt.Printf("Client error creating config folder: %s (%s)\n", path, err.Error())
 				os.Exit(1)
 			}
 		}
@@ -114,7 +114,7 @@ func initConfig() {
 		if err != nil {
 			f, err := os.Create(configFile)
 			if err != nil {
-				fmt.Printf("Error creating config file: %s (%s)\n", configFile, err.Error())
+				fmt.Printf("Client error creating config file: %s (%s)\n", configFile, err.Error())
 				os.Exit(1)
 			}
 			defer f.Close()
