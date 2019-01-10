@@ -31,8 +31,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // targetRemoveCmd represents the targetRemove command
@@ -44,8 +46,27 @@ var targetRemoveCmd = &cobra.Command{
 	Remove a target from target-list (gsh api)
 
 	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("targetRemove called")
+
+		// check if target name is used
+		notUsed := true
+		targets := viper.GetStringMap("targets")
+		for k := range targets {
+			if k == args[0] {
+				notUsed = false
+			}
+		}
+		if notUsed {
+			fmt.Printf("Error, target do not exists: %s\n", args[0])
+			os.Exit(1)
+		}
+
+		// remove entry from data struct
+		targets[args[0]] = nil
+
+		// save config
+		viper.WriteConfig()
 	},
 }
 
