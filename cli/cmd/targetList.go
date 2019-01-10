@@ -33,6 +33,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // targetListCmd represents the targetList command
@@ -45,7 +46,20 @@ Displays the list of targets, marking the current
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("targetList called")
+
+		targets := viper.GetStringMap("targets")
+		for k, v := range targets {
+			target := v.(map[string]interface{})
+
+			// format output for activated target
+			if target["current"].(bool) {
+				target["currented"] = "*"
+			} else {
+				target["currented"] = " "
+			}
+
+			fmt.Printf("%s %s (%s)\n", target["currented"], k, target["endpoint"])
+		}
 	},
 }
 
