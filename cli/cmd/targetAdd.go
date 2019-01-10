@@ -31,21 +31,67 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
+	"os"
+	"regexp"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // targetAddCmd represents the targetAdd command
 var targetAddCmd = &cobra.Command{
-	Use:   "target-add",
+	Use:   "target-add [name] [https://gsh-api-endpoint.example.com]",
 	Short: "Adds a new entry to the list of available targets",
 	Long: `
 
 Adds a new entry to the list of available targets
 
 	`,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("targetAdd called")
+
+		match, _ := regexp.MatchString(`^\w+$`, args[0])
+		if !match {
+			fmt.Printf("Client error parsing target name: %s (must be number, letters and underscores)\n", args[0])
+			os.Exit(1)
+		}
+
+		// check gsh-api-endpoing
+		_, err := url.Parse(args[1])
+		if err != nil {
+			fmt.Printf("Client error parsing target endpoint: %s (%s)\n", args[1], err.Error())
+			os.Exit(1)
+		}
+
+		// check if target name is used before
+		targets := viper.GetStringMap("targets")
+		for k, v := range targets {
+			if k == args[0] {
+				target := v.(map[string]interface{})
+				fmt.Printf("Client error, target name already exists: %s (with endpoint: %s)\n", k, target["endpoint"])
+				os.Exit(1)
+			}
+		}
+
+		// if new target must be current, we unset all others
+		setCurrent, err := cmd.Flags().GetBool("set-current")
+		if err != nil {
+			fmt.Printf("Client error parsing set-current option: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+		if setCurrent {
+			for _, v := range targets {
+				target := v.(map[string]interface{})
+				target["current"] = false
+			}
+		}
+
+		// add new entry to data struct
+		targets[args[0]] = map[string]interface{}{"current": setCurrent, "endpoint": args[1]}
+
+		// save config
+		viper.WriteConfig()
 	},
 }
 
@@ -60,5 +106,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// targetAddCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	targetAddCmd.Flags().BoolP("set-current", "s", false, "Add and define the target as the current target")
 }
