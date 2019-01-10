@@ -109,7 +109,7 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	decoder := json.NewDecoder(resp.Body)
 	decoder.Decode(&sshCertificate)
 
-	return sshCertificate.Data.SignedKey, nil
+	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
 }
 
 func (v *Vault) GetExternalPublicKey() (string, error) {
