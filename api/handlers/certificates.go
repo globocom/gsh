@@ -101,7 +101,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	v := Vault{h.config.GetString("ca_authority.role_id"), h.config.GetString("VAULT_SECRET_ID"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
-	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("CERT_DURATION"))
+	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("cert_duration"))
 	// Parse user key
 	certRequest.PublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(certRequest.Key))
 	if err != nil {
