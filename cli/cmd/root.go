@@ -87,13 +87,38 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("Error reading home folder: %s (%s)\n", home, err.Error())
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".gshc" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".gshc")
+		// check if .gshc folder exists and creates if it not exists
+		path := home + "/.gshc"
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			err := os.Mkdir(path, 0750)
+			if err != nil {
+				fmt.Printf("Error creating config folder: %s (%s)\n", path, err.Error())
+				os.Exit(1)
+			}
+		}
+
+		// add path to viper config
+		viper.AddConfigPath(path)
+
+		// set config file name and type
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+
+		// test if config file exists and creates if it not exists
+		configFile := path + "/config.yaml"
+		err = viper.ReadInConfig()
+		if err != nil {
+			f, err := os.Create(configFile)
+			if err != nil {
+				fmt.Printf("Error creating config file: %s (%s)\n", configFile, err.Error())
+				os.Exit(1)
+			}
+			defer f.Close()
+		}
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
