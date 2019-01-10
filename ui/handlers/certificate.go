@@ -144,7 +144,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 		Result      string `json:"result"`
 	}
 	certResponse := new(CertResponse)
-	if err := c.Bind(certResponse); err != nil {
+	if err := json.Unmarshal(body, &certResponse); err != nil {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",
 			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
@@ -152,12 +152,12 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 			"csrf":        c.Get("csrf"),
 			"remote_host": certRequest.RemoteHost,
 			"user_key":    certRequest.Key,
-			"error":       "GSH API error (" + resp.Status + "): " + err.Error(),
+			"error":       "Error parsing GSH API response: " + err.Error(),
 		})
 	}
 
 	// Download file with SSH certificate
-	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pem"))
-	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pem", time.Now(), strings.NewReader(certResponse.Certificate))
+	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pub"))
+	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pub", time.Now(), strings.NewReader(certResponse.Certificate))
 	return nil
 }
