@@ -157,7 +157,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	}
 
 	// Download file with SSH certificate
-	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pem"))
-	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pem", time.Now(), strings.NewReader(certResponse.Certificate))
+	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pub"))
+	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pub", time.Now(), strings.NewReader(certResponse.Certificate))
 	return nil
 }
