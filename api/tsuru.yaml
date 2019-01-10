@@ -1,0 +1,8 @@
+healthcheck:
+  path: /status/live
+  method: GET
+  status: 200
+  match: WORKING 
+  allowed_failures: 1
+  use_in_router: true 
+
