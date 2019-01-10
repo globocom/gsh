@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	oidc "github.com/coreos/go-oidc"
@@ -117,8 +118,25 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	}
 	defer resp.Body.Close()
 
+	type CertResponse struct {
+		Certificate string `json:"certificate"`
+		Result      string `json:"result"`
+	}
+	certResponse := new(CertResponse)
+	if err := c.Bind(certResponse); err != nil {
+		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
+			"name":        "Generate your SSH certificate",
+			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"user_ip":     c.RealIP(),
+			"csrf":        c.Get("csrf"),
+			"remote_host": certRequest.RemoteHost,
+			"user_key":    certRequest.Key,
+			"error":       "GSH API error (" + resp.Status + "): " + err.Error(),
+		})
+	}
+
 	// Download file with SSH certificate
 	c.Response().Header().Set(echo.HeaderContentDisposition, fmt.Sprintf("%s; filename=%q", "attachment", "ssh-cert.pem"))
-	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pem", time.Now(), bytes.NewReader(body))
+	http.ServeContent(c.Response(), c.Request(), "ssh-cert.pem", time.Now(), strings.NewReader(certResponse.Certificate))
 	return nil
 }
