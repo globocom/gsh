@@ -55,7 +55,20 @@ func main() {
 	}
 
 	// Enable cookie store
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte(configuration.GetString("SESSION_STORE_SECRET")))))
+	// Check for rotate keys
+	if len(configuration.GetString("SESSION_STORE_AUTHENTICATION_SECRET_OLD")) > 0 && len(configuration.GetString("SESSION_STORE_ENCRYPTION_SECRET_OLD")) > 0 {
+		e.Use(session.Middleware(sessions.NewCookieStore(
+			[]byte(configuration.GetString("SESSION_STORE_AUTHENTICATION_SECRET")),
+			[]byte(configuration.GetString("SESSION_STORE_AUTHENTICATION_SECRET_OLD")),
+			[]byte(configuration.GetString("SESSION_STORE_ENCRYPTION_SECRET")),
+			[]byte(configuration.GetString("SESSION_STORE_ENCRYPTION_SECRET_OLD")),
+		)))
+	} else {
+		e.Use(session.Middleware(sessions.NewCookieStore(
+			[]byte(configuration.GetString("SESSION_STORE_AUTHENTICATION_SECRET")),
+			[]byte(configuration.GetString("SESSION_STORE_ENCRYPTION_SECRET")),
+		)))
+	}
 
 	// Configure an OpenID Connect aware OAuth2 client.
 	ctx := context.Background()

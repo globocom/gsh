@@ -58,8 +58,12 @@ func Check(config viper.Viper) error {
 	}
 
 	if config.GetString("SESSION_STORE") == "COOKIE" {
-		if len(config.GetString("SESSION_STORE_SECRET")) == 0 {
-			fmt.Println("Environment variable GSH_SESSION_STORE_SECRET not defined")
+		if len(config.GetString("SESSION_STORE_AUTHENTICATION_SECRET")) == 0 {
+			fmt.Println("Environment variable GSH_SESSION_STORE_AUTHENTICATION_SECRET not defined")
+			fails++
+		}
+		if len(config.GetString("SESSION_STORE_ENCRYPTION_SECRET")) == 0 {
+			fmt.Println("Environment variable GSH_SESSION_STORE_ENCRYPTION_SECRET not defined")
 			fails++
 		}
 	}
