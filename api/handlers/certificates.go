@@ -207,7 +207,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			TargetID:  certRequest.ID,
 		}
 	}()
-	return c.String(http.StatusOK, signedKey)
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "certificate": signedKey})
 }
 
 func (h AppHandler) PublicKey(c echo.Context) error {
