@@ -31,8 +31,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // targetSetCmd represents the targetSet command
@@ -44,8 +46,31 @@ var targetSetCmd = &cobra.Command{
 Change current target (gsh api)
 
 	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("targetSet called")
+
+		// check if target name is used
+		notUsed := true
+		targets := viper.GetStringMap("targets")
+		for k, v := range targets {
+			if k == args[0] {
+				notUsed = false
+				// set target as current
+				target := v.(map[string]interface{})
+				target["current"] = true
+			} else {
+				// unset all others targets as not current
+				target := v.(map[string]interface{})
+				target["current"] = false
+			}
+		}
+		if notUsed {
+			fmt.Printf("Client error, target do not exists: %s\n", args[0])
+			os.Exit(1)
+		}
+
+		// save config (only if target is found)
+		viper.WriteConfig()
 	},
 }
 
