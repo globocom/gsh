@@ -88,12 +88,18 @@ func (v *Vault) GetToken() error {
 	return nil
 }
 
-func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
+// SignUserSSHCertificate sign ssh.Certificate for user and return a string with data (without \n at end)
+func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
+	// get new vault client token
 	v.GetToken()
+
+	// set Vault data struct for sign
 	data := make(map[string]string)
 	data["public_key"] = string(ssh.MarshalAuthorizedKey(c.Key))
 	data["valid_principals"] = strings.Join(c.ValidPrincipals, ",")
 	data["cert_type"] = "user"
+
+	// request vault
 	jsonData, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority_endpoint")+v.config.GetString("ca_authority_signer_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
@@ -103,12 +109,14 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "-1", errors.New("Failed to sign ssh certificate")
+		return "", errors.New("Failed to sign ssh certificate")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "-1", errors.New("Failed to sign ssh certificate, not 200 ok")
+		return "", errors.New("Failed to sign ssh certificate, not 200 ok")
 	}
+
+	// parse Vault response
 	sshCertificate := sshCertificate{}
 	decoder := json.NewDecoder(resp.Body)
 	decoder.Decode(&sshCertificate)
