@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -87,7 +88,7 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	v.GetToken()
 	data := make(map[string]string)
 	data["public_key"] = string(ssh.MarshalAuthorizedKey(c.Key))
-	data["valid_principals"] = "root"
+	data["valid_principals"] = strings.Join(c.ValidPrincipals, ",")
 	data["cert_type"] = "user"
 	jsonData, _ := json.Marshal(data)
 	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority.endpoint")+v.config.GetString("ca_authority.signer_url"), bytes.NewBuffer(jsonData))
@@ -108,7 +109,7 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	decoder := json.NewDecoder(resp.Body)
 	decoder.Decode(&sshCertificate)
 
-	return sshCertificate.Data.SignedKey, nil
+	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
 }
 
 func (v *Vault) GetExternalPublicKey() (string, error) {
