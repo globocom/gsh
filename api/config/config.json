@@ -5,8 +5,6 @@
     "workers_audit": 1,
     "workers_log": 1,
 
-    "cert_duration": 600000000000,
-
     "storage_driver": "mysql",
     "storage_max_attempts": 20,
     "storage_max_connections": 20,
@@ -18,6 +16,7 @@
     "ca_signer_url": "/sign",
     "ca_login_url": "/login",
     "ca_role_id": "vault role id",
+    "ca_signed_cert_duration": 600000000000,
 
     "oidc_base_url": "https://oidc.example.com",
     "oidc_realm": "oidc",
