@@ -124,6 +124,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
 }
 
+// GetExternalPublicKey returns public key from external CA
 func (v *Vault) GetExternalPublicKey() (string, error) {
 	resp, err := http.Get(v.config.GetString("ca_authority_endpoint") + v.config.GetString("ca_authority_public_key_url"))
 	if err != nil {
@@ -131,11 +132,11 @@ func (v *Vault) GetExternalPublicKey() (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "-1", errors.New("External CA did not answer correctly")
+		return "", errors.New("External CA did not answer correctly: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "-1", err
+		return "", err
 	}
 
 	return string(data), nil
