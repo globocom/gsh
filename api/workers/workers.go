@@ -13,12 +13,12 @@ type Worker struct{}
 
 // InitWorkers is the function thats starts workers
 func InitWorkers(config viper.Viper, auditChannel *chan types.AuditRecord, logChannel *chan map[string]interface{}, stopChannel *chan bool, db *gorm.DB) {
-	workers := config.GetInt("WORKERS_AUDIT")
+	workers := config.GetInt("workers_audit")
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
 		go worker.WriteAudit(auditChannel, stopChannel, db)
 	}
-	workers = config.GetInt("WORKERS_LOG")
+	workers = config.GetInt("workers_log")
 	for j := 0; j < workers; j++ {
 		worker := &Worker{}
 		go worker.WriteLog(logChannel, stopChannel)

@@ -80,28 +80,30 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Importing data requested in types.CertRequest struct", "details": err.Error()})
 	}
-	//Validating JWT before any other action
+
+	// Validating JWT before any other action
 	var err error
-	authorization_header := c.Request().Header.Get("Authorization")
-	if len(authorization_header) == 0 {
+	authorizationHeader := c.Request().Header.Get("Authorization")
+	if len(authorizationHeader) == 0 {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Authorization header not provided", "details": "Expecting Authorization: JWT id_token"})
 	}
-	jwt := strings.Split(authorization_header, "JWT")
+	jwt := strings.Split(authorizationHeader, "JWT")
 	if len(jwt) != 2 {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Authorization header malformed", "details": "Expecting Authorization: JWT id_token"})
 	}
-	err = ValidateJwt(jwt[1], h.config)
+	err = ValidateJWT(jwt[1], h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
-	//Initializing vault
-	v := Vault{h.config.GetString("ca_authority.role_id"), h.config.GetString("VAULT_SECRET_ID"), h.config, ""}
+
+	// Initializing vault
+	v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
-	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("cert_duration"))
+	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("ca_signed_cert_duration"))
 	// Parse user key
 	certRequest.PublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(certRequest.Key))
 	if err != nil {
@@ -112,8 +114,8 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	// Using md5 because that's what ssh-keygen prints out, making searches for a particular key easier
 	userFingerprint := ssh.FingerprintLegacyMD5(certRequest.PublicKey)
 
-	//here is where differs from an external signer and a local signer
-	if h.config.GetBool("ca_authority.external") {
+	// here is where differs from an external signer and a local signer
+	if h.config.GetBool("ca_external") {
 		externalPubKey, err := v.GetExternalPublicKey()
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError,
@@ -130,7 +132,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 	} else {
 		// Parse the public key
-		certRequest.CAPublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(h.config.GetString("CA_PUBLIC_KEY")))
+		certRequest.CAPublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(h.config.GetString("ca_public_key")))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
 				map[string]string{"result": "fail", "message": "Parse the public key", "details": err.Error()})
@@ -143,6 +145,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		// TODO: verify to log user thats requested certificate (not RemoteUser)
 		certRequest.KeyID = fmt.Sprintf("user[%s] from[%s] command[%s] sshKey[%s] ca[%s] valid to[%s]", certRequest.RemoteUser, certRequest.UserIP, certRequest.Command, userFingerprint, []byte(certRequest.CAFingerprint), certRequest.ValidBefore.Format(time.RFC3339))
 	}
+
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
 	criticalOptions["force-command"] = certRequest.Command
@@ -168,15 +171,15 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 	var signedKey string
 	// Sign user key
-	if h.config.GetBool("ca_authority.external") {
-		signedKey, err = v.SignSshCertificate(cert)
+	if h.config.GetBool("ca_external") {
+		signedKey, err = v.SignUserSSHCertificate(cert)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
 				map[string]string{"result": "fail", "message": "Sign user key", "details": err.Error()})
 		}
 	} else {
 		// Parse the private key
-		sshCASigner, err := ssh.ParsePrivateKey([]byte(h.config.GetString("CA_PRIVATE_KEY")))
+		sshCASigner, err := ssh.ParsePrivateKey([]byte(h.config.GetString("ca_private_key")))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
 				map[string]string{"result": "fail", "message": "Parse private ca key", "details": err.Error()})
@@ -188,6 +191,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		}
 		signedKey = string(ssh.MarshalAuthorizedKey(cert))
 	}
+
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
@@ -210,13 +214,36 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "certificate": signedKey})
 }
 
+// PublicKey returns CA public key
+//
+// - Output sample
+// {
+// 	"result":"success",
+//	"public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6rGI3i3D1fvay1MFKHjEfcvKA
+// A6vuNH5ayPcmOIoeHvkXPO6uCp4pbSNmy45szxyTEjGYJx0F6qylUzi4jZ+1BIpq5QStetsP4pryLhd
+// vK21bkCIBAqZbmw6Wc4D2Z+Qc7Is1/ZBr3g2lmfWApNqFmlwnDGpH6Hp0lRdBtanTz3/er99JS9WRXF
+// c/uRGkY6n/fX3VELTixmcyRIIQDI66Cy+6jkS9nDn4E8Hu2mshWP/VtOok4DsIBk1YQb9wSeTOtmIZf
+// EjBbzcKyBorYHWqYvNXN4wDtKtSTypjE1d42qodK3sKNMqqrIXdicHUId967oL7497+jDklpfZ24z3O
+// gM7rdXRijDJUP6RcBpKFSriGOV6wolYop7Rc/DLgA16MOx8Zh/iVh3LI0zKyeQhG5tNO/hoNPe8Bp0k
+// IXio9xBt/TyAHl3OfFQ6rYOwefvmp2ladV2Wy/BeIOPnswO0jk288qpzUDYE8sOlrtn3DZfqG5auDAe
+// A+7XNuDuwUmwjSFTRz4nAtooCaF8UTysIfHYFgtKvU+xCIXWsHMr4BSaF1B3f2434r4Hn0gfWeg5CSu
+// 0nO45S07q3TKjnoo644zmHtuUUw/+fG1ctmmjq1DO85TcotqdW1oT/SZwYxK7hqwvY7S5uClkUSXmDG
+//  UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
+// }
 func (h AppHandler) PublicKey(c echo.Context) error {
-	v := Vault{h.config.GetString("ca_authority.role_id"), h.config.GetString("VAULT_SECRET_ID"), h.config, ""}
-	data, err := v.GetExternalPublicKey()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Error getting ssh public key", "details": err.Error()})
+
+	var publicKey string
+	if h.config.GetBool("ca_external") {
+		v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
+		var err error
+		publicKey, err = v.GetExternalPublicKey()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				map[string]string{"result": "fail", "message": "Error getting ssh public key", "details": err.Error()})
+		}
+	} else {
+		publicKey = h.config.GetString("ca_public_key")
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": string(data)})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": publicKey})
 }

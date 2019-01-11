@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,9 +14,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// Vault store configuration to use remote Vault as cert signer
 type Vault struct {
-	roleId   string
-	secretId string
+	roleID   string
+	secretID string
 	config   viper.Viper
 	token    string
 }
@@ -54,27 +56,29 @@ type sshCertificate struct {
 	Auth interface{} `json:"auth"`
 }
 
+// GetVault returns Vault configuration
 func GetVault() Vault {
 	return Vault{}
 }
 
+// GetToken autenticate on Vault instance and returns a client token
 func (v *Vault) GetToken() error {
 	data := make(map[string]string)
-	data["role_id"] = v.roleId
-	data["secret_id"] = v.secretId
+	data["role_id"] = v.roleID
+	data["secret_id"] = v.secretID
 	jsonData, _ := json.Marshal(data)
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority.endpoint")+v.config.GetString("ca_authority.login_url"), bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_endpoint")+v.config.GetString("ca_login_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("Failed to autenticate with vault")
+		return errors.New("Failed to autenticate with vault: " + err.Error())
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Failed to auhenticate with vault")
+		return errors.New("Failed to auhenticate with vault: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	authResponse := authResponse{}
 	decoder := json.NewDecoder(resp.Body)
@@ -84,14 +88,20 @@ func (v *Vault) GetToken() error {
 	return nil
 }
 
-func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
+// SignUserSSHCertificate sign ssh.Certificate for user and return a string with data (without \n at end)
+func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
+	// get new vault client token
 	v.GetToken()
+
+	// set Vault data struct for sign
 	data := make(map[string]string)
 	data["public_key"] = string(ssh.MarshalAuthorizedKey(c.Key))
 	data["valid_principals"] = strings.Join(c.ValidPrincipals, ",")
 	data["cert_type"] = "user"
+
+	// request vault
 	jsonData, _ := json.Marshal(data)
-	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority.endpoint")+v.config.GetString("ca_authority.signer_url"), bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_endpoint")+v.config.GetString("ca_signer_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Vault-Token", v.token)
 	client := &http.Client{
@@ -99,12 +109,14 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "-1", errors.New("Failed to sign ssh certificate")
+		return "", errors.New("Failed to sign ssh certificate")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "-1", errors.New("Failed to sign ssh certificate, not 200 ok")
+		return "", errors.New("Failed to sign ssh certificate, not 200 ok")
 	}
+
+	// parse Vault response
 	sshCertificate := sshCertificate{}
 	decoder := json.NewDecoder(resp.Body)
 	decoder.Decode(&sshCertificate)
@@ -112,18 +124,19 @@ func (v *Vault) SignSshCertificate(c *ssh.Certificate) (string, error) {
 	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
 }
 
+// GetExternalPublicKey returns public key from external CA
 func (v *Vault) GetExternalPublicKey() (string, error) {
-	resp, err := http.Get(v.config.GetString("ca_authority.endpoint") + v.config.GetString("ca_authority.public_key_url"))
+	resp, err := http.Get(v.config.GetString("ca_endpoint") + v.config.GetString("ca_public_key_url"))
 	if err != nil {
 		return "-1", err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "-1", errors.New("External CA did not answer correctly")
+		return "", errors.New("External CA did not answer correctly: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "-1", err
+		return "", err
 	}
 
 	return string(data), nil

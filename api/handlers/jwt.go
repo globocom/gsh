@@ -33,9 +33,10 @@ type claimSource struct {
 type jsonTime time.Time
 type audience []string
 
-func ValidateJwt(jwt string, config viper.Viper) error {
+// ValidateJWT validates JWT based on audience, expiration, signature and issuer
+func ValidateJWT(jwt string, config viper.Viper) error {
 	var err error
-	err = verifyAudience(jwt, config.GetString("oidc_conf.audience"))
+	err = verifyAudience(jwt, config.GetString("oidc_audience"))
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -43,12 +44,12 @@ func ValidateJwt(jwt string, config viper.Viper) error {
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	key_url := config.GetString("oidc_conf.base_url") + "/" + config.GetString("oidc_conf.realm") + "/protocol/openid-connect/certs"
-	err = verifySignature(jwt, key_url)
+	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
+	err = verifySignature(jwt, keyURL)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	issuer := config.GetString("oidc_conf.base_url") + "/" + config.GetString("oidc_conf.realm")
+	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
 	err = verifyIssuer(jwt, issuer)
 	if err != nil {
 		return fmt.Errorf(err.Error())
@@ -57,7 +58,7 @@ func ValidateJwt(jwt string, config viper.Viper) error {
 	return nil
 }
 
-func verifySignature(jwt, certs_url string) error {
+func verifySignature(jwt, certsURL string) error {
 	jws, err := jose.ParseSigned(jwt)
 	if err != nil {
 		return fmt.Errorf("Malformed jwt: %v", err)
@@ -65,7 +66,7 @@ func verifySignature(jwt, certs_url string) error {
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	req, _ := http.NewRequest("GET", certs_url, nil)
+	req, _ := http.NewRequest("GET", certsURL, nil)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -99,7 +100,7 @@ func verifySignature(jwt, certs_url string) error {
 }
 
 func verifyExpiry(jwt string) error {
-	token, err := ParseIdToken(jwt)
+	token, err := parseIDToken(jwt)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -110,7 +111,7 @@ func verifyExpiry(jwt string) error {
 }
 
 func verifyAudience(jwt, audience string) error {
-	token, err := ParseIdToken(jwt)
+	token, err := parseIDToken(jwt)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -121,7 +122,7 @@ func verifyAudience(jwt, audience string) error {
 }
 
 func verifyIssuer(jwt, issuer string) error {
-	token, err := ParseIdToken(jwt)
+	token, err := parseIDToken(jwt)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -131,7 +132,7 @@ func verifyIssuer(jwt, issuer string) error {
 	return nil
 }
 
-func ParseIdToken(jwt string) (idToken, error) {
+func parseIDToken(jwt string) (idToken, error) {
 	var token idToken
 	parsedJwt, err := parseJWT(jwt)
 	if err != nil {
