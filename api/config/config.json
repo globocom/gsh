@@ -12,12 +12,12 @@
     "storage_max_connections": 20,
     "storage_debug": false,
 
-    "ca_authority_external": true,
-    "ca_authority_endpoint": "https://example.com",
-    "ca_authority_public_key_url": "/public_key",
-    "ca_authority_signer_url": "/sign",
-    "ca_authority_login_url": "/login",
-    "ca_authority_role_id": "vault role id",
+    "ca_external": true,
+    "ca_endpoint": "https://example.com",
+    "ca_public_key_url": "/public_key",
+    "ca_signer_url": "/sign",
+    "ca_login_url": "/login",
+    "ca_role_id": "vault role id",
 
     "oidc_base_url": "https://oidc.example.com",
     "oidc_realm": "oidc",

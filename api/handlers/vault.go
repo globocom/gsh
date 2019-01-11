@@ -70,7 +70,7 @@ func (v *Vault) GetToken() error {
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority_endpoint")+v.config.GetString("ca_authority_login_url"), bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_endpoint")+v.config.GetString("ca_login_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -101,7 +101,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 
 	// request vault
 	jsonData, _ := json.Marshal(data)
-	req, _ := http.NewRequest("POST", v.config.GetString("ca_authority_endpoint")+v.config.GetString("ca_authority_signer_url"), bytes.NewBuffer(jsonData))
+	req, _ := http.NewRequest("POST", v.config.GetString("ca_endpoint")+v.config.GetString("ca_signer_url"), bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Vault-Token", v.token)
 	client := &http.Client{
@@ -126,7 +126,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 
 // GetExternalPublicKey returns public key from external CA
 func (v *Vault) GetExternalPublicKey() (string, error) {
-	resp, err := http.Get(v.config.GetString("ca_authority_endpoint") + v.config.GetString("ca_authority_public_key_url"))
+	resp, err := http.Get(v.config.GetString("ca_endpoint") + v.config.GetString("ca_public_key_url"))
 	if err != nil {
 		return "-1", err
 	}

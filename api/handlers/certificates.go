@@ -100,7 +100,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Initializing vault
-	v := Vault{h.config.GetString("ca_authority_role_id"), h.config.GetString("vault_secret_id"), h.config, ""}
+	v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
 	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("cert_duration"))
@@ -115,7 +115,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	userFingerprint := ssh.FingerprintLegacyMD5(certRequest.PublicKey)
 
 	// here is where differs from an external signer and a local signer
-	if h.config.GetBool("ca_authority_external") {
+	if h.config.GetBool("ca_external") {
 		externalPubKey, err := v.GetExternalPublicKey()
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError,
@@ -171,7 +171,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 	var signedKey string
 	// Sign user key
-	if h.config.GetBool("ca_authority_external") {
+	if h.config.GetBool("ca_external") {
 		signedKey, err = v.SignUserSSHCertificate(cert)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest,
@@ -231,7 +231,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 //  UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
 // }
 func (h AppHandler) PublicKey(c echo.Context) error {
-	v := Vault{h.config.GetString("ca_authority_role_id"), h.config.GetString("vault_secret_key"), h.config, ""}
+	v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
 	data, err := v.GetExternalPublicKey()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,

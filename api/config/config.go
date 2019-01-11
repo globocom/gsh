@@ -41,25 +41,25 @@ func Check(config viper.Viper) error {
 		fmt.Println("Storage URI (storage_uri) not set")
 		fails++
 	}
-	if config.GetBool("ca_authority_external") {
-		if len(config.GetString("ca_authority_signer_url")) == 0 {
-			fmt.Println("CA authority signer URL (ca_authority_signer_url) not set")
+	if config.GetBool("ca_external") {
+		if len(config.GetString("ca_signer_url")) == 0 {
+			fmt.Println("CA signer URL (ca_signer_url) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority_public_key_url")) == 0 {
-			fmt.Println("CA authority public key URL (ca_authority_public_key_url) not set")
+		if len(config.GetString("ca_public_key_url")) == 0 {
+			fmt.Println("CA public key URL (ca_public_key_url) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority_endpoint")) == 0 {
-			fmt.Println("CA authority endpoint (ca_authority_endpoint) not set")
+		if len(config.GetString("ca_endpoint")) == 0 {
+			fmt.Println("CA endpoint (ca_endpoint) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority_role_id")) == 0 {
-			fmt.Println("CA authority role ID (ca_authority_role_id) not set")
+		if len(config.GetString("ca_role_id")) == 0 {
+			fmt.Println("CA role ID (ca_role_id) not set")
 			fails++
 		}
-		if len(config.GetString("vault_secret_id")) == 0 {
-			fmt.Println("Vault secret ID (vault_secret_id) not set")
+		if len(config.GetString("ca_external_secret_id")) == 0 {
+			fmt.Println("CA external (Vault) secret ID (ca_external_secret_id) not set")
 			fails++
 		}
 	} else {
