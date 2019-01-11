@@ -80,14 +80,15 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Importing data requested in types.CertRequest struct", "details": err.Error()})
 	}
-	//Validating JWT before any other action
+
+	// Validating JWT before any other action
 	var err error
-	authorization_header := c.Request().Header.Get("Authorization")
-	if len(authorization_header) == 0 {
+	authorizationHeader := c.Request().Header.Get("Authorization")
+	if len(authorizationHeader) == 0 {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Authorization header not provided", "details": "Expecting Authorization: JWT id_token"})
 	}
-	jwt := strings.Split(authorization_header, "JWT")
+	jwt := strings.Split(authorizationHeader, "JWT")
 	if len(jwt) != 2 {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Authorization header malformed", "details": "Expecting Authorization: JWT id_token"})
@@ -97,7 +98,8 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
-	//Initializing vault
+
+	// Initializing vault
 	v := Vault{h.config.GetString("ca_authority_role_id"), h.config.GetString("vault_secret_id"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
@@ -112,7 +114,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	// Using md5 because that's what ssh-keygen prints out, making searches for a particular key easier
 	userFingerprint := ssh.FingerprintLegacyMD5(certRequest.PublicKey)
 
-	//here is where differs from an external signer and a local signer
+	// here is where differs from an external signer and a local signer
 	if h.config.GetBool("ca_authority_external") {
 		externalPubKey, err := v.GetExternalPublicKey()
 		if err != nil {
@@ -143,6 +145,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		// TODO: verify to log user thats requested certificate (not RemoteUser)
 		certRequest.KeyID = fmt.Sprintf("user[%s] from[%s] command[%s] sshKey[%s] ca[%s] valid to[%s]", certRequest.RemoteUser, certRequest.UserIP, certRequest.Command, userFingerprint, []byte(certRequest.CAFingerprint), certRequest.ValidBefore.Format(time.RFC3339))
 	}
+
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
 	criticalOptions["force-command"] = certRequest.Command
@@ -188,6 +191,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		}
 		signedKey = string(ssh.MarshalAuthorizedKey(cert))
 	}
+
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
