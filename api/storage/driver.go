@@ -17,15 +17,15 @@ import (
 func Init(config viper.Viper) (*gorm.DB, error) {
 
 	// Configure for MYSQL using gorm
-	if config.GetString("storage.storage_driver") == "mysql" {
+	if config.GetString("storage_driver") == "mysql" {
 		// Connecting to the Database
-		db, err := gorm.Open("mysql", config.GetString("STORAGE_URI"))
+		db, err := gorm.Open("mysql", config.GetString("storage_uri"))
 		if err != nil {
 			log.Println(err)
 		}
 		// Trying to reconnect without database until maxAttempts
 		var dbError error
-		maxAttempts := config.GetInt("storage.storage_max_attempts")
+		maxAttempts := config.GetInt("storage_max_attempts")
 		for attempts := 1; attempts <= maxAttempts; attempts++ {
 			dbError = db.DB().Ping()
 			if dbError == nil {
@@ -39,12 +39,12 @@ func Init(config viper.Viper) (*gorm.DB, error) {
 		}
 		// disabling NO_ZERO_DATE mode
 		db.DB().Exec("SET SESSION sql_mode = 'ONLY_FULL_GROUP_BY,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';")
-		db.DB().SetMaxOpenConns(config.GetInt("storage.storage_max_connections"))
+		db.DB().SetMaxOpenConns(config.GetInt("storage_max_connections"))
 		db.AutoMigrate(
 			&types.AuditRecord{},
 			&types.CertRequest{},
 		)
-		if config.GetBool("storage.storage_debug") {
+		if config.GetBool("storage_debug") {
 			db.LogMode(true)
 		}
 		return db, nil

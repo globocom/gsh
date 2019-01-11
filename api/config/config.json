@@ -1,28 +1,25 @@
 {
     "port": 8000,
     "channel_size": 100,
-    "workers":{
-        "workers_audit": 1,
-        "workers_log": 1
-    },
+
+    "workers_audit": 1,
+    "workers_log": 1,
+
     "cert_duration": 600000000000,
-    "storage": {
-        "storage_driver": "mysql",
-        "storage_max_attempts": 20,
-        "storage_max_connections": 20,
-        "storage_debug": false
-    },
-    "ca_authority": {
-        "external": true,
-        "endpoint": "https://example.com",
-        "public_key_url": "/public_key",
-        "signer_url": "/sign",
-        "login_url": "/login",
-        "role_id": "vault role id"
-    },
-    "oidc_conf": {
-        "base_url": "https://oidc.example.com",
-        "realm": "oidc",
-        "audience": "gsh"
-    }
+
+    "storage_driver": "mysql",
+    "storage_max_attempts": 20,
+    "storage_max_connections": 20,
+    "storage_debug": false,
+
+    "ca_authority_external": true,
+    "ca_authority_endpoint": "https://example.com",
+    "ca_authority_public_key_url": "/public_key",
+    "ca_authority_signer_url": "/sign",
+    "ca_authority_login_url": "/login",
+    "ca_authority_role_id": "vault role id",
+
+    "oidc_base_url": "https://oidc.example.com",
+    "oidc_realm": "oidc",
+    "oidc_audience": "gsh"
 }

@@ -30,7 +30,7 @@ func main() {
 	defer db.Close()
 
 	// Configuring channels
-	var defaultChannelSize, _ = strconv.Atoi(os.Getenv("CHANNEL_SIZE"))
+	var defaultChannelSize, _ = strconv.Atoi(os.Getenv("channel_size"))
 	var auditChannel = make(chan types.AuditRecord, defaultChannelSize)
 	var logChannel = make(chan map[string]interface{}, defaultChannelSize)
 	var stopChannel = make(chan bool)

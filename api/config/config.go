@@ -20,9 +20,9 @@ func Init() viper.Viper {
 	config.AddConfigPath("config/")
 	err := config.ReadInConfig() // Find and read the config file
 	if err != nil {              // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		panic(fmt.Errorf("Fatal error config file: %s", err))
 	}
-	config.SetDefault("STORAGE_URI", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
+	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -34,47 +34,47 @@ func Check(config viper.Viper) error {
 
 	// Check envs
 	if len(os.Getenv("PORT")) == 0 {
-		fmt.Printf("Environment variable GSH_PORT not defined\n")
+		fmt.Printf("Environment variable PORT not defined\n")
 		fails++
 	}
-	if len(config.GetString("STORAGE_URI")) == 0 {
-		fmt.Printf("Environment variable GSH_STORAGE_URI not defined\n")
+	if len(config.GetString("storage_uri")) == 0 {
+		fmt.Println("Storage URI (storage_uri) not set")
 		fails++
 	}
-	if config.GetBool("ca_authority.external") {
-		if len(config.GetString("ca_authority.signer_url")) == 0 {
-			fmt.Println("CA Authority signer_url not set in config file")
+	if config.GetBool("ca_authority_external") {
+		if len(config.GetString("ca_authority_signer_url")) == 0 {
+			fmt.Println("CA authority signer URL (ca_authority_signer_url) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority.public_key_url")) == 0 {
-			fmt.Println("CA Authority public_key_url not set in config file")
+		if len(config.GetString("ca_authority_public_key_url")) == 0 {
+			fmt.Println("CA authority public key URL (ca_authority_public_key_url) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority.endpoint")) == 0 {
-			fmt.Println("CA Authority endpoint not set in config file")
+		if len(config.GetString("ca_authority_endpoint")) == 0 {
+			fmt.Println("CA authority endpoint (ca_authority_endpoint) not set")
 			fails++
 		}
-		if len(config.GetString("ca_authority.role_id")) == 0 {
-			fmt.Println("CA Authority role_id not set in config file")
+		if len(config.GetString("ca_authority_role_id")) == 0 {
+			fmt.Println("CA authority role ID (ca_authority_role_id) not set")
 			fails++
 		}
-		if len(config.GetString("VAULT_SECRET_ID")) == 0 {
-			fmt.Printf("Environment variable GSH_VAULT_SECRET_ID not defined\n")
+		if len(config.GetString("vault_secret_id")) == 0 {
+			fmt.Println("Vault secret ID (vault_secret_id) not set")
 			fails++
 		}
 	} else {
-		if len(config.GetString("CA_PRIVATE_KEY")) == 0 {
-			fmt.Printf("Environment variable GSH_CA_PRIVATE_KEY not defined\n")
+		if len(config.GetString("ca_private_key")) == 0 {
+			fmt.Println("CA private key (ca_private_key) not set")
 			fails++
 		}
-		if len(config.GetString("CA_PUBLIC_KEY")) == 0 {
-			fmt.Printf("Environment variable GSH_CA_PUBLIC_KEY not defined\n")
+		if len(config.GetString("ca_public_key")) == 0 {
+			fmt.Println("CA public key (ca_public_key) not set")
 			fails++
 		}
 	}
 
 	if fails > 0 {
-		return errors.New("Configuração incorreta")
+		return errors.New("Incorrect configuration")
 	}
 
 	return nil

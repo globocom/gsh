@@ -35,7 +35,7 @@ type audience []string
 
 func ValidateJwt(jwt string, config viper.Viper) error {
 	var err error
-	err = verifyAudience(jwt, config.GetString("oidc_conf.audience"))
+	err = verifyAudience(jwt, config.GetString("oidc_audience"))
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -43,12 +43,12 @@ func ValidateJwt(jwt string, config viper.Viper) error {
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	key_url := config.GetString("oidc_conf.base_url") + "/" + config.GetString("oidc_conf.realm") + "/protocol/openid-connect/certs"
+	key_url := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
 	err = verifySignature(jwt, key_url)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	issuer := config.GetString("oidc_conf.base_url") + "/" + config.GetString("oidc_conf.realm")
+	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
 	err = verifyIssuer(jwt, issuer)
 	if err != nil {
 		return fmt.Errorf(err.Error())
