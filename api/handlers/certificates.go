@@ -210,6 +210,22 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "certificate": signedKey})
 }
 
+// PublicKey returns CA public key
+//
+// - Output sample
+// {
+// 	"result":"success",
+//	"public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6rGI3i3D1fvay1MFKHjEfcvKA
+// A6vuNH5ayPcmOIoeHvkXPO6uCp4pbSNmy45szxyTEjGYJx0F6qylUzi4jZ+1BIpq5QStetsP4pryLhd
+// vK21bkCIBAqZbmw6Wc4D2Z+Qc7Is1/ZBr3g2lmfWApNqFmlwnDGpH6Hp0lRdBtanTz3/er99JS9WRXF
+// c/uRGkY6n/fX3VELTixmcyRIIQDI66Cy+6jkS9nDn4E8Hu2mshWP/VtOok4DsIBk1YQb9wSeTOtmIZf
+// EjBbzcKyBorYHWqYvNXN4wDtKtSTypjE1d42qodK3sKNMqqrIXdicHUId967oL7497+jDklpfZ24z3O
+// gM7rdXRijDJUP6RcBpKFSriGOV6wolYop7Rc/DLgA16MOx8Zh/iVh3LI0zKyeQhG5tNO/hoNPe8Bp0k
+// IXio9xBt/TyAHl3OfFQ6rYOwefvmp2ladV2Wy/BeIOPnswO0jk288qpzUDYE8sOlrtn3DZfqG5auDAe
+// A+7XNuDuwUmwjSFTRz4nAtooCaF8UTysIfHYFgtKvU+xCIXWsHMr4BSaF1B3f2434r4Hn0gfWeg5CSu
+// 0nO45S07q3TKjnoo644zmHtuUUw/+fG1ctmmjq1DO85TcotqdW1oT/SZwYxK7hqwvY7S5uClkUSXmDG
+//  UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
+// }
 func (h AppHandler) PublicKey(c echo.Context) error {
 	v := Vault{h.config.GetString("ca_authority_role_id"), h.config.GetString("vault_secret_key"), h.config, ""}
 	data, err := v.GetExternalPublicKey()
