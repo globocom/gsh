@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,9 +14,10 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// Vault store configuration to use remote Vault as cert signer
 type Vault struct {
-	roleId   string
-	secretId string
+	roleID   string
+	secretID string
 	config   viper.Viper
 	token    string
 }
@@ -54,14 +56,16 @@ type sshCertificate struct {
 	Auth interface{} `json:"auth"`
 }
 
+// GetVault returns Vault configuration
 func GetVault() Vault {
 	return Vault{}
 }
 
+// GetToken autenticate on Vault instance and returns a client token
 func (v *Vault) GetToken() error {
 	data := make(map[string]string)
-	data["role_id"] = v.roleId
-	data["secret_id"] = v.secretId
+	data["role_id"] = v.roleID
+	data["secret_id"] = v.secretID
 	jsonData, _ := json.Marshal(data)
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
@@ -70,11 +74,11 @@ func (v *Vault) GetToken() error {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("Failed to autenticate with vault")
+		return errors.New("Failed to autenticate with vault: " + err.Error())
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Failed to auhenticate with vault")
+		return errors.New("Failed to auhenticate with vault: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	authResponse := authResponse{}
 	decoder := json.NewDecoder(resp.Body)
