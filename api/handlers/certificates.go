@@ -231,12 +231,19 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 //  UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
 // }
 func (h AppHandler) PublicKey(c echo.Context) error {
-	v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
-	data, err := v.GetExternalPublicKey()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Error getting ssh public key", "details": err.Error()})
+
+	var publicKey string
+	if h.config.GetBool("ca_external") {
+		v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
+		var err error
+		publicKey, err = v.GetExternalPublicKey()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				map[string]string{"result": "fail", "message": "Error getting ssh public key", "details": err.Error()})
+		}
+	} else {
+		publicKey = h.config.GetString("ca_public_key")
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": string(data)})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": publicKey})
 }
