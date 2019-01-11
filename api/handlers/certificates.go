@@ -93,7 +93,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Authorization header malformed", "details": "Expecting Authorization: JWT id_token"})
 	}
-	err = ValidateJwt(jwt[1], h.config)
+	err = ValidateJWT(jwt[1], h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})

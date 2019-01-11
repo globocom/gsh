@@ -33,7 +33,8 @@ type claimSource struct {
 type jsonTime time.Time
 type audience []string
 
-func ValidateJwt(jwt string, config viper.Viper) error {
+// ValidateJWT validates JWT based on audience, expiration, signature and issuer
+func ValidateJWT(jwt string, config viper.Viper) error {
 	var err error
 	err = verifyAudience(jwt, config.GetString("oidc_audience"))
 	if err != nil {
@@ -43,8 +44,8 @@ func ValidateJwt(jwt string, config viper.Viper) error {
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	key_url := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
-	err = verifySignature(jwt, key_url)
+	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
+	err = verifySignature(jwt, keyURL)
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
