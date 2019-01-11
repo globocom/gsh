@@ -82,11 +82,17 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 		Transport: netTransport,
 	}
 
+	// check username
+	remoteUser := sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string)
+	if len(remoteUser) == 0 {
+		remoteUser = c.FormValue("remote_host")
+	}
+
 	// prepare JSON to gsh api
 	certRequest := types.CertRequest{
 		Key:        c.FormValue("user_key"),
 		RemoteHost: c.FormValue("remote_host"),
-		RemoteUser: sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+		RemoteUser: remoteUser,
 		UserIP:     c.RealIP(),
 	}
 
@@ -99,7 +105,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	if err != nil {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",
-			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"remote_user": remoteUser,
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
 			"remote_host": certRequest.RemoteHost,
@@ -113,7 +119,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	if err != nil {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",
-			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"remote_user": remoteUser,
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
 			"remote_host": certRequest.RemoteHost,
@@ -124,7 +130,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	if resp.StatusCode != http.StatusOK {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",
-			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"remote_user": remoteUser,
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
 			"remote_host": certRequest.RemoteHost,
@@ -147,7 +153,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	if err := json.Unmarshal(body, &certResponse); err != nil {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",
-			"remote_user": sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")].(string),
+			"remote_user": remoteUser,
 			"user_ip":     c.RealIP(),
 			"csrf":        c.Get("csrf"),
 			"remote_host": certRequest.RemoteHost,
