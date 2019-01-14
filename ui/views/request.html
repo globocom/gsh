@@ -37,9 +37,9 @@
             </div>
             <div class="row">
                 <div class="input-field col s12">
-                    <input disabled value="{{index . "remote_user"}}" id="remote_user" name="remote_user" type="text" class="validate">
+                    <input {{if index . "remote_user"}}disabled{{end}} value="{{index . "remote_user"}}" id="remote_user" name="remote_user" type="text" class="validate">
                     <label for="remote_user">Remote user</label>
-                    <span class="helper-text">User that will be used inside the remote host (read-only)</span>
+                    <span class="helper-text">User that will be used inside the remote host {{if index . "remote_user"}}(read-only){{end}}</span>
                 </div>
             </div>
             <div class="row">
