@@ -30,9 +30,24 @@
 package cmd
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"os"
+	"time"
 
+	"github.com/pkg/browser"
+
+	oidc "github.com/coreos/go-oidc"
+	"github.com/globocom/gsh/cli/cmd/auth"
+	"github.com/globocom/gsh/types"
+	"github.com/labstack/gommon/random"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"golang.org/x/oauth2"
 )
 
 // loginCmd represents the login command
@@ -49,7 +64,111 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 	
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("login called")
+
+		// Get current target
+		currentTarget := new(types.Target)
+		targets := viper.GetStringMap("targets")
+		for k, v := range targets {
+			target := v.(map[string]interface{})
+
+			// format output for activated target
+			if target["current"].(bool) {
+				currentTarget.Label = k
+				currentTarget.Endpoint = target["endpoint"].(string)
+			}
+		}
+
+		// Setting custom HTTP client with timeouts
+		var netTransport = &http.Transport{
+			Dial: (&net.Dialer{
+				Timeout: 10 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: time.Second,
+		}
+		var netClient = &http.Client{
+			Timeout:   10 * time.Second,
+			Transport: netTransport,
+		}
+
+		// Making discovery GSH request
+		resp, err := netClient.Get(currentTarget.Endpoint + "/status/config")
+		if err != nil {
+			fmt.Printf("GSH API is down: %s\n", currentTarget.Endpoint)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Printf("GSH API body response error: %s\n", err.Error())
+			os.Exit(1)
+		}
+		if resp.StatusCode != http.StatusOK {
+			fmt.Printf("GSH API status response error: %v\n", resp.StatusCode)
+			os.Exit(1)
+		}
+		type ConfigResponse struct {
+			BaseURL  string `json:"oidc_base_url"`
+			Realm    string `json:"oidc_realm"`
+			Audience string `json:"oidc_audience"`
+		}
+		configResponse := new(ConfigResponse)
+		if err := json.Unmarshal(body, &configResponse); err != nil {
+			fmt.Printf("GSH API body unmarshal error: %s\n", err.Error())
+			os.Exit(1)
+		}
+
+		// Configure an OpenID Connect aware OAuth2 client.
+		ctx := context.Background()
+		oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
+		if err != nil {
+			fmt.Printf("GSH client setting OIDC provider error: %s\n", err.Error())
+			os.Exit(1)
+		}
+
+		// Setup localserver with random port
+		finish := make(chan bool)
+		l, err := net.Listen("tcp", "127.0.0.1:")
+		if err != nil {
+			fmt.Printf("GSH client can not start localhost server: %s\n", err.Error())
+			os.Exit(1)
+		}
+		// Get random port on localserver
+		_, port, err := net.SplitHostPort(l.Addr().String())
+		if err != nil {
+			fmt.Printf("GSH client can not get localhost port: %s\n", err.Error())
+			os.Exit(1)
+		}
+		redirectURL := fmt.Sprintf("http://localhost:%s", port)
+
+		oauth2config := oauth2.Config{
+			ClientID:    configResponse.Audience,
+			RedirectURL: redirectURL,
+			Endpoint:    oauth2provider.Endpoint(),
+			Scopes:      []string{oidc.ScopeOpenID},
+		}
+
+		// Generate radom state and PKCE codes
+		state := random.String(32)
+		codeVerifier, codeChallenge := auth.PKCEgenerator()
+
+		// Generate AuthCode URL with PKCE
+		authURL := oauth2config.AuthCodeURL(state, oauth2.SetAuthURLParam("code_challenge", codeChallenge), oauth2.SetAuthURLParam("code_challenge_method", "S256"))
+
+		// Setup local web server
+		http.HandleFunc("/", auth.Callback(state, codeVerifier, redirectURL, oauth2config, currentTarget.Label, finish))
+		server := &http.Server{}
+		go server.Serve(l)
+
+		// Open client browser to user login on OIDC
+		err = browser.OpenURL(authURL)
+		if err != nil {
+			fmt.Println("Failed to start your browser.")
+			fmt.Printf("Please open the following URL in your browser: %s\n", authURL)
+		}
+
+		// Stop local web server
+		<-finish
+		fmt.Println("Successfully logged in!")
 	},
 }
 
