@@ -37,6 +37,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/99designs/keyring"
 	"github.com/labstack/gommon/random"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -93,10 +94,8 @@ func Callback(state string, codeVerifier string, redirectURL string, oauth2confi
 				// Exchange success
 				page = fmt.Sprintf(callbackPage, successMarkup)
 
-				// Storing tokens on current target (config file)
-				viper.Set("targets."+targetLabel+".refresh_token", oauth2Token.RefreshToken)
-				viper.Set("targets."+targetLabel+".access_token", oauth2Token.AccessToken)
-				viper.WriteConfig()
+				// Storing tokens on current target
+				StorageTokens(targetLabel, map[string]string{"refresh_token": oauth2Token.RefreshToken, "access_token": oauth2Token.AccessToken})
 			}
 		}
 		w.Header().Add("Content-Type", "text/html")
@@ -121,4 +120,34 @@ func PKCEgenerator() (string, string) {
 
 	// return both
 	return codeVerifier, codeChallenge
+}
+
+// StorageTokens uses keyring to storage refresh and access tokens
+func StorageTokens(targetLabel string, tokens map[string]string) error {
+	var storage []keyring.BackendType
+	storageConfig := viper.GetString("targets." + targetLabel + ".token-storage")
+	storage = append(storage, keyring.BackendType(storageConfig))
+	ring, err := keyring.Open(keyring.Config{
+		AllowedBackends: storage,
+		ServiceName:     "gsh",
+	})
+	if err != nil {
+		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
+		return err
+	}
+	var errExists bool
+	for k, v := range tokens {
+		err = ring.Set(keyring.Item{
+			Key:  targetLabel + "." + k,
+			Data: []byte(v),
+		})
+		if err != nil {
+			errExists = true
+		}
+	}
+	if errExists {
+		fmt.Printf("Client error using storage: (%s)\n", err.Error())
+		return err
+	}
+	return nil
 }

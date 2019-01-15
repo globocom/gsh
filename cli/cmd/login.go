@@ -39,6 +39,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/99designs/keyring"
 	"github.com/pkg/browser"
 
 	oidc "github.com/coreos/go-oidc"
@@ -77,6 +78,46 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 				currentTarget.Endpoint = target["endpoint"].(string)
 			}
 		}
+
+		// Check for set-token-storage flag
+		var setStorage string
+		if !cmd.Flags().Changed("set-token-storage") {
+			// user not set the flag, read from config file
+			setStorageCheck := viper.Get("targets." + currentTarget.Label + ".token-storage")
+
+			// config file not set
+			if setStorageCheck == nil {
+				// Get default if config file not set
+				var err error
+				setStorageCheck, err = cmd.Flags().GetString("set-token-storage")
+				if err != nil {
+					fmt.Printf("Client error parsing set-token-storage option: (%s)\n", err.Error())
+					os.Exit(1)
+				}
+			}
+			setStorage = setStorageCheck.(string)
+		} else {
+			var err error
+			setStorage, err = cmd.Flags().GetString("set-token-storage")
+			if err != nil {
+				fmt.Printf("Client error parsing set-token-storage option: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+		}
+		var match bool
+		for _, v := range keyring.AvailableBackends() {
+			if string(v) == setStorage {
+				match = true
+			}
+		}
+		if match == false {
+			fmt.Printf("Client error with unsuported credentials storage backend: Only avaliables(%v)\n", keyring.AvailableBackends())
+			os.Exit(1)
+		}
+
+		// Storing tokens on current target (config file)
+		viper.Set("targets."+currentTarget.Label+".token-storage", setStorage)
+		viper.WriteConfig()
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{
@@ -184,4 +225,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// loginCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	loginCmd.Flags().StringP("set-token-storage", "s", "keychain", "Define where OIDC tokens will be stored [keychain,kwallet,wincred,secret-service,file]")
 }
