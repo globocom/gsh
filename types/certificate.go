@@ -25,6 +25,9 @@ type CertRequest struct {
 	CAFingerprint string        `json:"-" gorm:"column:ca_fingerprint"`
 	KeyID         string        `json:"-" gorm:"column:key_id"`
 
+	//Certificate KeyID, after signed
+	CertKeyID string `json:"-" gorm:"column:cert_key_id"`
+
 	// Columns for database
 	ID         uint       `json:"-" gorm:"primary_key"`
 	CreatedAt  time.Time  `json:"-"`

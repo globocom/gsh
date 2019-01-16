@@ -191,7 +191,15 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		}
 		signedKey = string(ssh.MarshalAuthorizedKey(cert))
 	}
-
+	//parsing the returned certificat to extract the new keyid generated
+	k, _, _, _, err := ssh.ParseAuthorizedKey([]byte(signedKey))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest,
+			map[string]string{"result": "fail", "message": "Failed parsing signed key", "details": err.Error()})
+	}
+	signedCert := k.(*ssh.Certificate)
+	//assigning the new key id to store the new value into db
+	certRequest.CertKeyID = signedCert.KeyId
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
@@ -246,4 +254,12 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": publicKey})
+}
+
+func (h AppHandler) CertInfo(c echo.Context) error {
+	keyID := c.Param("keyID")
+	certRequest := new(types.CertRequest)
+	h.db.Where("cert_key_id = ?", keyID).First(&certRequest)
+
+	return c.JSON(http.StatusOK, map[string]string{"result": "succes", "remote_user": certRequest.RemoteUser})
 }
