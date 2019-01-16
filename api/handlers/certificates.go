@@ -261,5 +261,5 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 	certRequest := new(types.CertRequest)
 	h.db.Where("cert_key_id = ?", keyID).First(&certRequest)
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "succes", "remote_user": certRequest.RemoteUser})
+	return c.JSON(http.StatusOK, map[string]string{"result": "succes", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }
