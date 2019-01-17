@@ -33,6 +33,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -95,7 +96,7 @@ func Callback(state string, codeVerifier string, redirectURL string, oauth2confi
 				page = fmt.Sprintf(callbackPage, successMarkup)
 
 				// Storing tokens on current target
-				StorageTokens(targetLabel, map[string]string{"refresh_token": oauth2Token.RefreshToken, "access_token": oauth2Token.AccessToken})
+				StorageTokens(targetLabel, *oauth2Token)
 			}
 		}
 		w.Header().Add("Content-Type", "text/html")
@@ -123,7 +124,7 @@ func PKCEgenerator() (string, string) {
 }
 
 // StorageTokens uses keyring to storage refresh and access tokens
-func StorageTokens(targetLabel string, tokens map[string]string) error {
+func StorageTokens(targetLabel string, token oauth2.Token) error {
 	var storage []keyring.BackendType
 	storageConfig := viper.GetString("targets." + targetLabel + ".token-storage")
 	storage = append(storage, keyring.BackendType(storageConfig))
@@ -135,17 +136,18 @@ func StorageTokens(targetLabel string, tokens map[string]string) error {
 		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
 		return err
 	}
-	var errExists bool
-	for k, v := range tokens {
-		err = ring.Set(keyring.Item{
-			Key:  targetLabel + "." + k,
-			Data: []byte(v),
-		})
-		if err != nil {
-			errExists = true
-		}
+
+	oauth2TokenJSON, err := json.Marshal(token)
+	if err != nil {
+		fmt.Printf("Client error marshall oauth2 tokens: (%s)\n", err.Error())
+		return err
 	}
-	if errExists {
+
+	err = ring.Set(keyring.Item{
+		Key:  targetLabel,
+		Data: oauth2TokenJSON,
+	})
+	if err != nil {
 		fmt.Printf("Client error using storage: (%s)\n", err.Error())
 		return err
 	}
