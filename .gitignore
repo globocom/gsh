@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+main
 
 # Test binary, build with `go test -c`
 *.test
@@ -13,3 +14,6 @@
 
 # Local env configuration
 .env
+
+# Vendor packages
+vendor
