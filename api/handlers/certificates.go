@@ -256,6 +256,15 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "public_key": publicKey})
 }
 
+// CertInfo returns certificate info based on KeyID
+//
+// - Output sample
+// {
+// 	"result":"success",
+//	"remote_user": "username",
+//  "remote_host": "10.0.0.1"
+// }
+
 func (h AppHandler) CertInfo(c echo.Context) error {
 	keyID := c.Param("keyID")
 	certRequest := new(types.CertRequest)
