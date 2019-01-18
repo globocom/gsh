@@ -18,6 +18,7 @@ func init() {
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
 }
 
+// CertInfo is struct with response for GET /certificate/:keyID
 type CertInfo struct {
 	Result     string `json:"result"`
 	RemoteUser string `json:"remote_user"`
@@ -69,6 +70,8 @@ var checkPermissionCmd = &cobra.Command{
 			}).Fatal("Failed to read key-id")
 			os.Exit(-1)
 		}
+
+		// Get username flag
 		username, err := cmd.Flags().GetString("username")
 		if err != nil {
 			log.WithFields(logrus.Fields{
@@ -79,8 +82,11 @@ var checkPermissionCmd = &cobra.Command{
 			}).Fatal("Failed to read username")
 			os.Exit(-1)
 		}
-		//defining default field to log
+
+		// Defining default field to log
 		auditLogger := log.WithFields(logrus.Fields{"key_id": keyID, "username": username})
+
+		// Get certificate from GSH API
 		certInfo := getCertInfo(keyID)
 		checkIfaces := checkInterfaces(certInfo.RemoteHost)
 		if !checkIfaces {
@@ -93,6 +99,8 @@ var checkPermissionCmd = &cobra.Command{
 			}).Fatal("Certificate not authorized for local host")
 			os.Exit(-1)
 		}
+
+		// Check if certificate remote user is same username trying authenticate
 		if username != certInfo.RemoteUser {
 			auditLogger.WithFields(logrus.Fields{
 				"event":       "remote user validation",
@@ -103,6 +111,8 @@ var checkPermissionCmd = &cobra.Command{
 			}).Fatal("Certificate not authorized for local host")
 			os.Exit(-1)
 		}
+
+		// Log success
 		auditLogger.WithFields(logrus.Fields{
 			"event":       "auth ok",
 			"topic":       "authentication succeded",
@@ -110,10 +120,14 @@ var checkPermissionCmd = &cobra.Command{
 			"remote_user": certInfo.RemoteUser,
 			"result":      "success",
 		}).Info("All checks passed, user authenticating...")
+
+		// Print user to sshd
+		// https://man.openbsd.org/sshd_config#AuthorizedPrincipalsCommand
 		fmt.Println(certInfo.RemoteUser)
 	},
 }
 
+// checkInterfaces verifies if remoteHost is containned local interfaces
 func checkInterfaces(remoteHost string) bool {
 	remoteIP := net.ParseIP(remoteHost)
 	ifacesAddrs, err := net.InterfaceAddrs()
@@ -129,6 +143,7 @@ func checkInterfaces(remoteHost string) bool {
 	return false
 }
 
+// getCertInfo reveives a keyID and check on GSH API for certificate
 func getCertInfo(keyID string) CertInfo {
 	resp, err := http.Get("https://gsh-api.dev.globoi.com/certificate/" + keyID)
 	if err != nil {
