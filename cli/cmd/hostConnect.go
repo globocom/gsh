@@ -273,6 +273,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// hostConnectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	hostConnectCmd.Flags().StringP("key-type", "A", "rsa", "Defines type of auto generated ssh key pair (rsa)")
+	hostConnectCmd.Flags().StringP("key-type", "t", "rsa", "Defines type of auto generated ssh key pair (rsa)")
 	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user used on remote host")
 }
