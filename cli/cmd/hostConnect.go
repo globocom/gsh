@@ -159,23 +159,32 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 		// Get info about user
-		userInfo, err := oauth2provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
-		if err != nil {
-			fmt.Printf("Client error getting OIDC userinfo: (%s)\n", err.Error())
-			os.Exit(1)
-		}
-		claims := map[string]string{}
-		userInfo.Claims(&claims)
+		var username string
+		if !cmd.Flags().Changed("username") {
+			userInfo, err := oauth2provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+			if err != nil {
+				fmt.Printf("Client error getting OIDC userinfo: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+			claims := map[string]string{}
+			userInfo.Claims(&claims)
 
-		// Set username
-		username := claims[configResponse.UsernameClaim]
-		if username == "" {
-			userLocal, err := user.Current()
+			// Set username
+			username = claims[configResponse.UsernameClaim]
+			if username == "" {
+				userLocal, err := user.Current()
+				if err != nil {
+					fmt.Printf("Client error getting username: (%s)\n", err.Error())
+					os.Exit(1)
+				}
+				username = userLocal.Username
+			}
+		} else {
+			username, err = cmd.Flags().GetString("username")
 			if err != nil {
 				fmt.Printf("Client error getting username: (%s)\n", err.Error())
 				os.Exit(1)
 			}
-			username = userLocal.Username
 		}
 
 		// prepare JSON to gsh api
