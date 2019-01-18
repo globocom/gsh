@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,6 +17,7 @@ func init() {
 	rootCmd.AddCommand(checkPermissionCmd)
 	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
+	checkPermissionCmd.Flags().String("api", "", "the endpoint GSH API to check certificate")
 }
 
 // CertInfo is struct with response for GET /certificate/:keyID
@@ -86,8 +88,31 @@ var checkPermissionCmd = &cobra.Command{
 		// Defining default field to log
 		auditLogger := log.WithFields(logrus.Fields{"key_id": keyID, "username": username})
 
+		// Get GSH API endpoint
+		api, err := cmd.Flags().GetString("api")
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"event":  "reading flag parameter from sshd",
+				"topic":  "api endpoint not informed",
+				"key":    "api",
+				"result": "fail",
+			}).Fatal("Failed to read api endpoint")
+			os.Exit(-1)
+		}
+
 		// Get certificate from GSH API
-		certInfo := getCertInfo(keyID)
+		certInfo, err := getCertInfo(keyID, api)
+		if err != nil {
+			auditLogger.WithFields(logrus.Fields{
+				"event":  "certinfo error validation",
+				"topic":  "not possible verify certificate",
+				"key":    "api",
+				"result": "fail",
+				"error":  err.Error(),
+			}).Fatal("Not possible verify certificate")
+			os.Exit(-1)
+		}
+
 		checkIfaces := checkInterfaces(certInfo.RemoteHost)
 		if !checkIfaces {
 			auditLogger.WithFields(logrus.Fields{
@@ -144,28 +169,58 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 // getCertInfo reveives a keyID and check on GSH API for certificate
-func getCertInfo(keyID string) CertInfo {
-	resp, err := http.Get("https://gsh-api.dev.globoi.com/certificate/" + keyID)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(-1)
+func getCertInfo(keyID string, api string) (CertInfo, error) {
+
+	// Setting custom HTTP client with timeouts
+	var netTransport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 10 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: time.Second,
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	var netClient = &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: netTransport,
+	}
+
+	// Get certificate from API
+	resp, err := netClient.Get(api + "/certificates/" + keyID)
+	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",
 			"topic":  "get certinfo from api",
 			"key":    "certinfo",
 			"result": "fail",
+			"error":  err.Error(),
+		}).Fatal("Failed to comunicate with api")
+		return CertInfo{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		log.WithFields(logrus.Fields{
+			"event":      "get certinfo",
+			"topic":      "get certinfo from api",
+			"key":        "certinfo",
+			"result":     "fail",
+			"statusCode": resp.StatusCode,
 		}).Fatal("Failed to retrieve certinfo from api")
-		os.Exit(-1)
+		return CertInfo{}, err
 	}
 
+	// Get body
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(-1)
+		log.WithFields(logrus.Fields{
+			"event":  "read certinfo body",
+			"topic":  "read certinfo body from api",
+			"key":    "certinfo",
+			"result": "fail",
+			"error":  err.Error(),
+		}).Fatal("Failed to retrieve certinfo from api")
+		return CertInfo{}, err
 	}
+
+	// Unmarshall API response
 	var certInfo CertInfo
 	err = json.Unmarshal(data, &certInfo)
 	if err != nil {
@@ -174,8 +229,9 @@ func getCertInfo(keyID string) CertInfo {
 			"topic":  "unmarshel response form api",
 			"key":    "certinfo",
 			"result": "fail",
+			"error":  err.Error(),
 		}).Fatal("Failed to unmarshal response from api")
 		os.Exit(-1)
 	}
-	return certInfo
+	return certInfo, nil
 }
