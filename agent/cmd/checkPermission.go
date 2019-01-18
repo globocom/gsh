@@ -37,36 +37,15 @@ var checkPermissionCmd = &cobra.Command{
 			fmt.Println(err.Error())
 			os.Exit(-1)
 		}
-		resp, err := http.Get("https://gsh-api.example.com/certificate/" + keyID)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(-1)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("Error contacting gsh-api")
-			os.Exit(-1)
-		}
-
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(-1)
-		}
-		var certInfo CertInfo
-		err = json.Unmarshal(data, &certInfo)
-		if err != nil {
-			fmt.Println("Failed to unsmarshal response from gsh-api")
-			os.Exit(-1)
-		}
-		checkIfaces := checkInterfaces(certInfo.RemoteHost)
-		if !checkIfaces {
-			fmt.Println("Check interface error")
-			os.Exit(-1)
-		}
 		username, err := cmd.Flags().GetString("username")
 		if err != nil {
 			fmt.Println(err.Error())
+			os.Exit(-1)
+		}
+		certInfo := getCertInfo(keyID)
+		checkIfaces := checkInterfaces(certInfo.RemoteHost)
+		if !checkIfaces {
+			fmt.Println("Check interface error")
 			os.Exit(-1)
 		}
 		if username != certInfo.RemoteUser {
@@ -90,4 +69,30 @@ func checkInterfaces(remoteHost string) bool {
 		}
 	}
 	return false
+}
+
+func getCertInfo(keyID string) CertInfo {
+	resp, err := http.Get("https://gsh-api.example.com/certificate/" + keyID)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(-1)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error contacting gsh-api")
+		os.Exit(-1)
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(-1)
+	}
+	var certInfo CertInfo
+	err = json.Unmarshal(data, &certInfo)
+	if err != nil {
+		fmt.Println("Failed to unsmarshal response from gsh-api")
+		os.Exit(-1)
+	}
+	return certInfo
 }
