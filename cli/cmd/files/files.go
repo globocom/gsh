@@ -33,6 +33,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/globocom/gsh/cli/cmd/config"
+	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	homedir "github.com/mitchellh/go-homedir"
 )
@@ -59,14 +61,27 @@ func GetConfigPath() (string, error) {
 // WriteKeys saves string as files and returns the files paths
 func WriteKeys(key string, cert string) (string, string, error) {
 	// Find home directory.
-	path, err := GetConfigPath()
+	configPath, err := GetConfigPath()
 	if err != nil {
 		return "", "", err
 	}
 
-	newpath := path + "/certs"
-	if _, err := os.Stat(newpath); os.IsNotExist(err) {
-		err := os.Mkdir(newpath, 0750)
+	// Set specific path for certificates and private keys
+	certPath := configPath + "/certs"
+	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+		err := os.Mkdir(certPath, 0750)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	// Set specific per target
+	// Get current target
+	currentTarget := new(types.Target)
+	currentTarget = config.GetCurrentTarget()
+	path := certPath + "/" + currentTarget.Label
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, 0750)
 		if err != nil {
 			return "", "", err
 		}
@@ -74,7 +89,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 
 	// Store private key file with random name
 	id := random.String(32)
-	keyFileLocation := newpath + "/" + id
+	keyFileLocation := path + "/" + id
 	keyFile, err := os.Create(keyFileLocation)
 	defer keyFile.Close()
 	if err != nil {
@@ -84,7 +99,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	os.Chmod(keyFileLocation, 0600)
 
 	// Store cert file with suffix "-cert.pub" (https://man.openbsd.org/ssh.1#i)
-	certLocation := newpath + "/" + id + "-cert.pub"
+	certLocation := path + "/" + id + "-cert.pub"
 	certFile, err := os.Create(certLocation)
 	defer certFile.Close()
 	if err != nil {
