@@ -37,12 +37,28 @@ var checkPermissionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		//default log to stdout
 		log.Out = os.Stdout
-		file, err := os.OpenFile("/var/log/gsh-audit.log", os.O_CREATE|os.O_WRONLY, 0600)
-		if err == nil {
-			log.Out = file
-		} else {
-			log.Info("Failed to log to file, using default stdout")
+
+		// Check for log file
+		logFile := "/var/log/gsh-audit.log"
+
+		if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			file, err := os.OpenFile(logFile, os.O_CREATE, 0600)
+			if err != nil {
+				log.Info("Failed to log to file, using default stdout")
+			} else {
+				file.Close()
+			}
 		}
+
+		file, err := os.OpenFile(logFile, os.O_WRONLY|os.O_APPEND, 0600)
+		if err != nil {
+			log.Info("Failed to log to file, using default stdout")
+		} else {
+			log.Out = file
+			defer file.Close()
+		}
+
+		// Get key-id flag
 		keyID, err := cmd.Flags().GetString("key-id")
 		if err != nil {
 			log.WithFields(logrus.Fields{
@@ -114,7 +130,7 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 func getCertInfo(keyID string) CertInfo {
-	resp, err := http.Get("https://gsh-api.example.com/certificate/" + keyID)
+	resp, err := http.Get("https://gsh-api.dev.globoi.com/certificate/" + keyID)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(-1)
