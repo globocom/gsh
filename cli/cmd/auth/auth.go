@@ -35,10 +35,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/99designs/keyring"
+	oidc "github.com/coreos/go-oidc"
+	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -152,4 +158,90 @@ func StorageTokens(targetLabel string, token oauth2.Token) error {
 		return err
 	}
 	return nil
+}
+
+// RecoverToken uses keyring to recover access token
+func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
+	var storage []keyring.BackendType
+	storageConfig := viper.GetString("targets." + currentTarget.Label + ".token-storage")
+	storage = append(storage, keyring.BackendType(storageConfig))
+	ring, err := keyring.Open(keyring.Config{
+		AllowedBackends: storage,
+		ServiceName:     "gsh",
+	})
+	if err != nil {
+		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
+		return nil, err
+	}
+
+	tokenKeyItem, err := ring.Get(currentTarget.Label)
+	if err != nil {
+		fmt.Printf("Client error reading token storage: (%s)\n", err.Error())
+		return nil, err
+	}
+
+	token := new(oauth2.Token)
+	if err := json.Unmarshal(tokenKeyItem.Data, &token); err != nil {
+		fmt.Printf("Client error unmarshal token stored: (%s)\n", err.Error())
+		return nil, err
+	}
+
+	// Setting custom HTTP client with timeouts
+	var netTransport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout: 10 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: time.Second,
+	}
+	var netClient = &http.Client{
+		Timeout:   10 * time.Second,
+		Transport: netTransport,
+	}
+
+	// Making discovery GSH request
+	resp, err := netClient.Get(currentTarget.Endpoint + "/status/config")
+	if err != nil {
+		fmt.Printf("GSH API is down: %s\n", currentTarget.Endpoint)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("GSH API body response error: %s\n", err.Error())
+		os.Exit(1)
+	}
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("GSH API status response error: %v\n", resp.StatusCode)
+		os.Exit(1)
+	}
+	type ConfigResponse struct {
+		BaseURL  string `json:"oidc_base_url"`
+		Realm    string `json:"oidc_realm"`
+		Audience string `json:"oidc_audience"`
+	}
+	configResponse := new(ConfigResponse)
+	if err := json.Unmarshal(body, &configResponse); err != nil {
+		fmt.Printf("GSH API body unmarshal error: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
+	if err != nil {
+		fmt.Printf("GSH client setting OIDC provider error: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	// Configure an OpenID Connect aware OAuth2 client.
+	oauth2config := &oauth2.Config{
+		ClientID: configResponse.Audience,
+		Endpoint: oauth2provider.Endpoint(),
+	}
+	tokenRefreshed, err := oauth2config.TokenSource(ctx, token).Token()
+	if err != nil {
+		fmt.Printf("GSH client renew token error: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	return tokenRefreshed, nil
 }
