@@ -1,0 +1,104 @@
+// Copyright © 2019 Globo.com
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+package files
+
+import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"io/ioutil"
+	"os"
+
+	"github.com/labstack/gommon/random"
+	homedir "github.com/mitchellh/go-homedir"
+)
+
+// GetConfigPath return Viper config path
+func GetConfigPath() (string, error) {
+	// Find home directory.
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	// check if .gshc folder exists and creates if it not exists
+	path := home + "/.gshc"
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, 0750)
+		if err != nil {
+			return "", err
+		}
+	}
+	return path, nil
+}
+
+// WriteKeys saves string as files and returns the files paths
+func WriteKeys(key *rsa.PrivateKey, cert string) (string, string, error) {
+	// Find home directory.
+	path, err := GetConfigPath()
+	if err != nil {
+		return "", "", err
+	}
+
+	newpath := path + "/certs"
+	if _, err := os.Stat(newpath); os.IsNotExist(err) {
+		err := os.Mkdir(newpath, 0750)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	id := random.String(32)
+
+	keyFileLocation := newpath + "/" + id
+	keyFile, err := os.Create(keyFileLocation)
+	defer keyFile.Close()
+	if err != nil {
+		return "", "", err
+	}
+	privateKeyPEM := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}
+	if err := pem.Encode(keyFile, privateKeyPEM); err != nil {
+		return "", "", err
+	}
+	os.Chmod(keyFileLocation, 0600)
+
+	certLocation := newpath + "/" + id + "-cert.pub"
+	certFile, err := os.Create(certLocation)
+	defer certFile.Close()
+	if err != nil {
+		return "", "", err
+	}
+	ioutil.WriteFile(certLocation, []byte(cert), 0650)
+
+	return keyFileLocation, certLocation, nil
+}
