@@ -182,6 +182,14 @@
   revision = "f1daa725cce4049b1715f1e97d6a51880e401e70"
 
 [[projects]]
+  digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5c8c8bd35d3832f5d134ae1e1e375b69a4d25242"
+  version = "v1.0.1"
+
+[[projects]]
   digest = "1:29d28429a93b076908a36420a7ecb2bf429d24c15a4b5e2c220ea00fc84b71af"
   name = "github.com/kr/pty"
   packages = ["."]
@@ -287,6 +295,14 @@
   ]
   pruneopts = "UT"
   revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
+
+[[projects]]
+  digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:d707dbc1330c0ed177d4642d6ae102d5e2c847ebd0eb84562d0dc4f024531cfc"
@@ -477,6 +493,7 @@
     "github.com/labstack/gommon/random",
     "github.com/mitchellh/go-homedir",
     "github.com/pkg/browser",
+    "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "golang.org/x/crypto/ssh",
