@@ -31,9 +31,12 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -44,12 +47,15 @@ import (
 	"os/user"
 	"time"
 
+	oidc "github.com/coreos/go-oidc"
 	"github.com/globocom/gsh/cli/cmd/auth"
+	"github.com/globocom/gsh/cli/cmd/config"
 	"github.com/globocom/gsh/cli/cmd/files"
 	"github.com/globocom/gsh/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/oauth2"
 )
 
 // hostConnectCmd represents the hostConnect command
@@ -74,17 +80,42 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			}
 		}
 
-		// Generate certificate for current user
-		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		// Keys struct for reuse
+		type Keys struct {
+			SSHPublicKey  string
+			SSHPrivateKey string
+		}
+		keys := new(Keys)
+
+		// Get flags for SSH key type
+		keyType, err := cmd.Flags().GetString("key-type")
 		if err != nil {
-			fmt.Printf("Client error generating keys: (%s)\n", err.Error())
+			fmt.Printf("Client error parsing key-type option: (%s)\n", err.Error())
 			os.Exit(1)
 		}
-		// generate and write public key
-		pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
-		if err != nil {
-			fmt.Printf("Client error generating SSH keys: (%s)\n", err.Error())
-			os.Exit(1)
+		switch keyType {
+		// RSA Keys
+		case "rsa":
+			// Generate keys
+			privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+			if err != nil {
+				fmt.Printf("Client error generating RSA keys: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+			// convert publick key to SSH format
+			pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
+			if err != nil {
+				fmt.Printf("Client error converting RSA to SSH keys: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+			keys.SSHPublicKey = string(ssh.MarshalAuthorizedKey(pub))
+
+			// convert RSA private key to PEM format
+			privateKeyPEM := &pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+			}
+			keys.SSHPrivateKey = string(pem.EncodeToMemory(privateKeyPEM))
 		}
 
 		// Parse URL
@@ -106,22 +137,53 @@ can access an host just giving DNS name, or specifying the IP of the host.
 		defer conn.Close()
 		localAddr := conn.LocalAddr().(*net.TCPAddr)
 
-		// get username
-		user, err := user.Current()
-
-		// prepare JSON to gsh api
-		certRequest := types.CertRequest{
-			Key:        string(ssh.MarshalAuthorizedKey(pub)),
-			RemoteHost: args[0],
-			RemoteUser: user.Username,
-			UserIP:     localAddr.IP.String(),
+		// Make GSH API discovery
+		configResponse, err := config.Discovery()
+		if err != nil {
+			fmt.Printf("GSH client discover error: %s\n", err.Error())
+			os.Exit(1)
 		}
 
 		// Get OIDC HTTP Client
-		tokenRefreshed, err := auth.RecoverToken(currentTarget)
+		oauth2Token, err := auth.RecoverToken(currentTarget)
 		if err != nil {
 			fmt.Printf("Client error getting http client: (%s)\n", err.Error())
 			os.Exit(1)
+		}
+
+		// Get provider for username discovery
+		ctx := context.Background()
+		oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
+		if err != nil {
+			fmt.Printf("Client error getting OIDC Provider: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+		// Get info about user
+		userInfo, err := oauth2provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+		if err != nil {
+			fmt.Printf("Client error getting OIDC userinfo: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+		claims := map[string]string{}
+		userInfo.Claims(&claims)
+
+		// Set username
+		username := claims[configResponse.UsernameClaim]
+		if username == "" {
+			userLocal, err := user.Current()
+			if err != nil {
+				fmt.Printf("Client error getting username: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+			username = userLocal.Username
+		}
+
+		// prepare JSON to gsh api
+		certRequest := types.CertRequest{
+			Key:        keys.SSHPublicKey,
+			RemoteHost: args[0],
+			RemoteUser: username,
+			UserIP:     localAddr.IP.String(),
 		}
 
 		// Marshall certificate to JSON
@@ -141,7 +203,7 @@ can access an host just giving DNS name, or specifying the IP of the host.
 
 		// Make GSH request
 		req, err := http.NewRequest("POST", currentTarget.Endpoint+"/certificates", bytes.NewBuffer(certRequestJSON))
-		req.Header.Set("Authorization", "JWT "+tokenRefreshed.AccessToken)
+		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)
 		if err != nil {
@@ -174,13 +236,13 @@ can access an host just giving DNS name, or specifying the IP of the host.
 		// certificate at certResponse.Certificate
 
 		// Write files
-		keyFile, certFile, err := files.WriteKeys(privateKey, certResponse.Certificate)
+		keyFile, certFile, err := files.WriteKeys(keys.SSHPrivateKey, certResponse.Certificate)
 		if err != nil {
 			fmt.Printf("Client error write certificate files: (%s)\n", err.Error())
 			os.Exit(1)
 		}
 
-		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", user.Username, args[0])
+		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", username, args[0])
 		sh.Stdout = os.Stdout
 		sh.Stdin = os.Stdin
 		sh.Stderr = os.Stderr
@@ -202,4 +264,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// hostConnectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	hostConnectCmd.Flags().StringP("key-type", "A", "rsa", "Defines type of auto generated ssh key pair (rsa)")
+	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user used on remote host")
 }

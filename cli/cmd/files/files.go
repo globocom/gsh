@@ -30,9 +30,6 @@
 package files
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"io/ioutil"
 	"os"
 
@@ -60,7 +57,7 @@ func GetConfigPath() (string, error) {
 }
 
 // WriteKeys saves string as files and returns the files paths
-func WriteKeys(key *rsa.PrivateKey, cert string) (string, string, error) {
+func WriteKeys(key string, cert string) (string, string, error) {
 	// Find home directory.
 	path, err := GetConfigPath()
 	if err != nil {
@@ -75,23 +72,18 @@ func WriteKeys(key *rsa.PrivateKey, cert string) (string, string, error) {
 		}
 	}
 
+	// Store private key file with random name
 	id := random.String(32)
-
 	keyFileLocation := newpath + "/" + id
 	keyFile, err := os.Create(keyFileLocation)
 	defer keyFile.Close()
 	if err != nil {
 		return "", "", err
 	}
-	privateKeyPEM := &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}
-	if err := pem.Encode(keyFile, privateKeyPEM); err != nil {
-		return "", "", err
-	}
+	ioutil.WriteFile(keyFileLocation, []byte(key), 0600)
 	os.Chmod(keyFileLocation, 0600)
 
+	// Store cert file with suffix "-cert.pub" (https://man.openbsd.org/ssh.1#i)
 	certLocation := newpath + "/" + id + "-cert.pub"
 	certFile, err := os.Create(certLocation)
 	defer certFile.Close()
