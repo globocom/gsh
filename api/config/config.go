@@ -37,10 +37,12 @@ func Check(config viper.Viper) error {
 		fmt.Printf("Environment variable PORT not defined\n")
 		fails++
 	}
+	// Check Storage (MySQL)
 	if len(config.GetString("storage_uri")) == 0 {
 		fmt.Println("Storage URI (storage_uri) not set")
 		fails++
 	}
+	// Check CA
 	if config.GetBool("ca_external") {
 		if len(config.GetString("ca_signer_url")) == 0 {
 			fmt.Println("CA signer URL (ca_signer_url) not set")
@@ -71,6 +73,24 @@ func Check(config viper.Viper) error {
 			fmt.Println("CA public key (ca_public_key) not set")
 			fails++
 		}
+	}
+
+	// Check OIDC
+	if len(config.GetString("oidc_base_url")) == 0 {
+		fmt.Println("OIDC base URL (oidc_base_url) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_realm")) == 0 {
+		fmt.Println("OIDC realm (oidc_realm) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_audience")) == 0 {
+		fmt.Println("OIDC audience or client id (oidc_audience) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_claim")) == 0 {
+		fmt.Println("OIDC claim (oidc_claim) not set")
+		fails++
 	}
 
 	if fails > 0 {
