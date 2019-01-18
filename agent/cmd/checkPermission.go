@@ -14,6 +14,7 @@ import (
 func init() {
 	rootCmd.AddCommand(checkPermissionCmd)
 	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
+	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
 }
 
 type CertInfo struct {
@@ -61,6 +62,15 @@ var checkPermissionCmd = &cobra.Command{
 		checkIfaces := checkInterfaces(certInfo.RemoteHost)
 		if !checkIfaces {
 			fmt.Println("Check interface error")
+			os.Exit(-1)
+		}
+		username, err := cmd.Flags().GetString("username")
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(-1)
+		}
+		if username != certInfo.RemoteUser {
+			fmt.Println("Username trying to authenticate is not the one the certificate was issued for")
 			os.Exit(-1)
 		}
 		fmt.Println(certInfo.RemoteUser)
