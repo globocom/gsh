@@ -17,10 +17,10 @@ func Init() viper.Viper {
 	config := viper.New()
 	config.SetConfigType("json")
 	config.SetConfigName("config")
-	config.AddConfigPath("config/")
+	config.AddConfigPath("../")
 	err := config.ReadInConfig() // Find and read the config file
 	if err != nil {              // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s", err))
+		fmt.Println("Config file not set, using .env variables")
 	}
 	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
 	config.SetEnvPrefix("GSH")
