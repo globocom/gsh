@@ -60,11 +60,13 @@ import (
 
 // hostConnectCmd represents the hostConnect command
 var hostConnectCmd = &cobra.Command{
-	Use:   "host-connect",
-	Short: "Opens a remote shell inside host, using SSH certificates",
+	Use:     "host-connect",
+	Aliases: []string{"h", "c"},
+	Short:   "Opens a remote shell inside host, using SSH certificates",
 	Long: `Opens a remote shell inside host, using SSH certificates. You
 can access an host just giving DNS name, or specifying the IP of the host.
 `,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
