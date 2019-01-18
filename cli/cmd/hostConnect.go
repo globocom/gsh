@@ -253,13 +253,24 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 
+		// Check for dry flag
+		dry, err := cmd.Flags().GetBool("dry")
+		if err != nil {
+			fmt.Printf("Client error parsing dry option: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+		if dry {
+			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, args[0])
+			sh.Stdout = os.Stdout
+			sh.Run()
+			os.Exit(0)
+		}
+
 		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", username, args[0])
 		sh.Stdout = os.Stdout
 		sh.Stdin = os.Stdin
 		sh.Stderr = os.Stderr
 		sh.Run()
-
-		fmt.Println("host-connect called")
 	},
 }
 
@@ -277,4 +288,5 @@ func init() {
 	// hostConnectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	hostConnectCmd.Flags().StringP("key-type", "t", "rsa", "Defines type of auto generated ssh key pair (rsa)")
 	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user used on remote host")
+	hostConnectCmd.Flags().BoolP("dry", "d", false, "Does not connect to the remote host using SSH, just prints the command to be executed")
 }
