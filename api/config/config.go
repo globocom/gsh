@@ -39,13 +39,10 @@ func Check(config viper.Viper) error {
 	}
 
 	// Check Storage (MySQL)
-
 	if len(config.GetString("storage_driver")) == 0 {
 		fmt.Println("Storage driver (storage_driver) not set")
 		fails++
 	}
-
-	// Check Storage (MySQL)
 
 	if len(config.GetString("storage_uri")) == 0 {
 		fmt.Println("Storage URI (storage_uri) not set")
