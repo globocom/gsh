@@ -37,7 +37,14 @@ func Check(config viper.Viper) error {
 		fmt.Printf("Environment variable PORT not defined\n")
 		fails++
 	}
+<<<<<<< HEAD
 	// Check Storage (MySQL)
+=======
+	if len(config.GetString("storage_driver")) == 0 {
+		fmt.Println("Storage driver (storage_driver) not set")
+		fails++
+	}
+>>>>>>> [FEAT] Dockerize GSH
 	if len(config.GetString("storage_uri")) == 0 {
 		fmt.Println("Storage URI (storage_uri) not set")
 		fails++

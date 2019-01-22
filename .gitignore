@@ -13,7 +13,7 @@ main
 *.out
 
 # Local env configuration
-.env
+*.env
 
 # Vendor packages
 vendor
