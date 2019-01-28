@@ -44,7 +44,11 @@ func Check(config viper.Viper) error {
 		fmt.Println("Storage driver (storage_driver) not set")
 		fails++
 	}
+<<<<<<< HEAD
 >>>>>>> [FEAT] Dockerize GSH
+=======
+	// Check Storage (MySQL)
+>>>>>>> [FIX] Solve merge conflicts by adding both changes
 	if len(config.GetString("storage_uri")) == 0 {
 		fmt.Println("Storage URI (storage_uri) not set")
 		fails++
