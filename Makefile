@@ -10,12 +10,17 @@ COLOR_RED = \033[31m
 PROJECT := GSH
 
 ## Installs a development environment
-install: deploy
+install: environment deploy
 
 ## Composes project using docker-compose
 deploy:
 	docker-compose down
 	docker-compose up --build -d
+
+## Sets up environment variables
+environment:
+	chmod +x scripts/environment.sh
+	./scripts/environment.sh
 
 ## Prints help message
 help:
