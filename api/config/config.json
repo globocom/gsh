@@ -21,5 +21,6 @@
     "oidc_base_url": "https://oidc.example.com",
     "oidc_realm": "oidc",
     "oidc_audience": "gsh",
+    "oidc_authorized_party": "gsh",
     "oidc_claim": "preferred_username"
 }

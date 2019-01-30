@@ -37,18 +37,16 @@ func Check(config viper.Viper) error {
 		fmt.Printf("Environment variable PORT not defined\n")
 		fails++
 	}
-<<<<<<< HEAD
+
 	// Check Storage (MySQL)
-=======
+
 	if len(config.GetString("storage_driver")) == 0 {
 		fmt.Println("Storage driver (storage_driver) not set")
 		fails++
 	}
-<<<<<<< HEAD
->>>>>>> [FEAT] Dockerize GSH
-=======
+
 	// Check Storage (MySQL)
->>>>>>> [FIX] Solve merge conflicts by adding both changes
+
 	if len(config.GetString("storage_uri")) == 0 {
 		fmt.Println("Storage URI (storage_uri) not set")
 		fails++
@@ -98,6 +96,9 @@ func Check(config viper.Viper) error {
 	if len(config.GetString("oidc_audience")) == 0 {
 		fmt.Println("OIDC audience or client id (oidc_audience) not set")
 		fails++
+	}
+	if len(config.GetString("oidc_authorized_party")) == 0 {
+		fmt.Println("OIDC authorized party (oidc_authorized_party) not set")
 	}
 	if len(config.GetString("oidc_claim")) == 0 {
 		fmt.Println("OIDC claim (oidc_claim) not set")
