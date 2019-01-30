@@ -16,15 +16,16 @@ import (
 )
 
 type idToken struct {
-	Issuer       string                 `json:"iss"`
-	Subject      string                 `json:"sub"`
-	Audience     audience               `json:"aud"`
-	Expiry       jsonTime               `json:"exp"`
-	IssuedAt     jsonTime               `json:"iat"`
-	Nonce        string                 `json:"nonce"`
-	AtHash       string                 `json:"at_hash"`
-	ClaimNames   map[string]string      `json:"_claim_names"`
-	ClaimSources map[string]claimSource `json:"_claim_sources"`
+	Issuer          string                 `json:"iss"`
+	Subject         string                 `json:"sub"`
+	Audience        audience               `json:"aud"`
+	AuthorizedParty string                 `json:"azp"`
+	Expiry          jsonTime               `json:"exp"`
+	IssuedAt        jsonTime               `json:"iat"`
+	Nonce           string                 `json:"nonce"`
+	AtHash          string                 `json:"at_hash"`
+	ClaimNames      map[string]string      `json:"_claim_names"`
+	ClaimSources    map[string]claimSource `json:"_claim_sources"`
 }
 type claimSource struct {
 	Endpoint    string `json:"endpoint"`
@@ -37,6 +38,10 @@ type audience []string
 func ValidateJWT(jwt string, config viper.Viper) error {
 	var err error
 	err = verifyAudience(jwt, config.GetString("oidc_audience"))
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+	err = verifyAuthorizedParty(jwt, config.GetString("oidc_authorized_party"))
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -115,8 +120,29 @@ func verifyAudience(jwt, audience string) error {
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
-	if token.Audience[0] != audience {
+	fail := false
+	for _, aud := range token.Audience {
+		if aud == audience {
+			fail = true
+		}
+	}
+	if !fail {
 		return fmt.Errorf("Id Token issued to other audience")
+	}
+	return nil
+}
+
+func verifyAuthorizedParty(jwt, azp string) error {
+	token, err := parseIDToken(jwt)
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+	// Verifies is authorized party is present
+	if len(azp) == 0 && len(token.AuthorizedParty) == 0 {
+		return nil
+	}
+	if token.AuthorizedParty != azp {
+		return fmt.Errorf("Id Token issued to another authorized party")
 	}
 	return nil
 }
