@@ -120,6 +120,13 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			keys.SSHPrivateKey = string(pem.EncodeToMemory(privateKeyPEM))
 		}
 
+		// Get remote port
+		port, err := cmd.Flags().GetString("port")
+		if err != nil {
+			fmt.Printf("Client error getting remote port: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+
 		// Parse URL
 		u, err := url.Parse(currentTarget.Endpoint)
 		if err != nil {
@@ -127,13 +134,16 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 
-		// Get preferred outbound ip of this machine
-		conn, err := net.Dial("tcp", u.Host)
+		// Get preferred outbound ip of this machine (first on target machine, after GSH API)
+		conn, err := net.DialTimeout("tcp", args[0]+":"+port, time.Second)
 		if err != nil {
-			conn, err = net.Dial("tcp", u.Host+":"+u.Scheme)
+			conn, err = net.Dial("tcp", u.Host)
 			if err != nil {
-				fmt.Printf("Client error connecting on endpoint: (%s)\n", err.Error())
-				os.Exit(1)
+				conn, err = net.Dial("tcp", u.Host+":"+u.Scheme)
+				if err != nil {
+					fmt.Printf("Client error connecting on endpoint: (%s)\n", err.Error())
+					os.Exit(1)
+				}
 			}
 		}
 		defer conn.Close()
@@ -189,12 +199,22 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			}
 		}
 
+		// check user ip
+		sourceIP := localAddr.IP.String()
+		if cmd.Flags().Changed("source") {
+			sourceIP, err = cmd.Flags().GetString("source")
+			if err != nil {
+				fmt.Printf("Client error getting source-ip: (%s)\n", err.Error())
+				os.Exit(1)
+			}
+		}
+
 		// prepare JSON to gsh api
 		certRequest := types.CertRequest{
 			Key:        keys.SSHPublicKey,
 			RemoteHost: args[0],
 			RemoteUser: username,
-			UserIP:     localAddr.IP.String(),
+			UserIP:     sourceIP,
 		}
 
 		// Marshall certificate to JSON
@@ -260,13 +280,13 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 		if dry {
-			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, args[0])
+			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 			sh.Stdout = os.Stdout
 			sh.Run()
 			os.Exit(0)
 		}
 
-		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", username, args[0])
+		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 		sh.Stdout = os.Stdout
 		sh.Stdin = os.Stdin
 		sh.Stderr = os.Stderr
@@ -288,5 +308,7 @@ func init() {
 	// hostConnectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	hostConnectCmd.Flags().StringP("key-type", "t", "rsa", "Defines type of auto generated ssh key pair (rsa)")
 	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user used on remote host")
+	hostConnectCmd.Flags().StringP("source", "s", "local ip address", "Defines user IP used as source to remote host")
+	hostConnectCmd.Flags().StringP("port", "p", "22", "Defines destination port used to connect remote host")
 	hostConnectCmd.Flags().BoolP("dry", "d", false, "Does not connect to the remote host using SSH, just prints the command to be executed")
 }
