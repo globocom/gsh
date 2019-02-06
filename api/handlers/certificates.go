@@ -33,7 +33,7 @@ type certConfig struct {
 // 	"remote_user":"jim",
 //  "remote_host":"192.168.2.105",
 // 	"user_ip":"192.168.2.5",
-//	"jwt": "...."
+// 	"command":"/bin/bash"
 // }
 //
 // - Output sample
