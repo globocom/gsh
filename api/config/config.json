@@ -10,7 +10,7 @@
     "storage_max_connections": 20,
     "storage_debug": false,
 
-    "ca_external": true,
+    "ca_external":0,
     "ca_endpoint": "https://example.com",
     "ca_public_key_url": "/public_key",
     "ca_signer_url": "/sign",
