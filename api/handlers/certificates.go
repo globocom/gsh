@@ -150,7 +150,9 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
-	// criticalOptions["force-command"] = certRequest.Command
+	if certRequest.Command != "" {
+		criticalOptions["force-command"] = certRequest.Command
+	}
 	criticalOptions["source-address"] = certRequest.UserIP
 
 	perms := ssh.Permissions{
