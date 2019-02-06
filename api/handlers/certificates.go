@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -103,6 +104,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	v := Vault{h.config.GetString("ca_role_id"), h.config.GetString("ca_external_secret_id"), h.config, ""}
 	// Set our certificate validity times
 	certRequest.ValidAfter = time.Now().Add(-30 * time.Second)
+	certRequest.ModifiedAt = time.Now()
 	certRequest.ValidBefore = time.Now().Add(h.config.GetDuration("ca_signed_cert_duration"))
 	// Parse user key
 	certRequest.PublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(certRequest.Key))
@@ -148,7 +150,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
-	criticalOptions["force-command"] = certRequest.Command
+	// criticalOptions["force-command"] = certRequest.Command
 	criticalOptions["source-address"] = certRequest.UserIP
 
 	perms := ssh.Permissions{
@@ -264,9 +266,15 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 //	"remote_user": "username",
 //  "remote_host": "10.0.0.1"
 // }
-
 func (h AppHandler) CertInfo(c echo.Context) error {
-	keyID := c.Param("keyID")
+	keyPath := c.Request().RequestURI
+	s := strings.SplitAfterN(keyPath, "/", 3)
+	keyID := s[2]
+	keyID, err := url.QueryUnescape(keyID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error unescaping url query", "details": err.Error()})
+	}
 	certRequest := new(types.CertRequest)
 	h.db.Where("cert_key_id = ?", keyID).First(&certRequest)
 
