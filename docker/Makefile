@@ -10,17 +10,24 @@ COLOR_RED = \033[31m
 PROJECT := GSH
 
 ## Installs a development environment
-install: environment deploy
+install: environment deploy msg
 
 ## Composes project using docker-compose
 deploy:
 	docker-compose down
 	docker-compose up --build -d
+	rm ./scripts/ca_host_key ./scripts/ca_host_key.pub
 
-## Sets up environment variables
+## Initializes environment variables
 environment:
-	chmod +x scripts/environment.sh
-	./scripts/environment.sh
+	chmod +x scripts/env.sh
+	./scripts/env.sh
+
+## Prints message after deploy stage
+msg:
+	chmod +x scripts/check-init.sh
+	./scripts/check-init.sh
+
 
 ## Prints help message
 help:
@@ -35,3 +42,4 @@ help:
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort
 	printf "\n"
+	

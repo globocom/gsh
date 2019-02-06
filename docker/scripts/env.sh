@@ -1,12 +1,9 @@
 #!/bin/sh
 #
-# This script initializes environment variables to build the environment.
+# This script creates .env file, which later is used by the containers.
 #
 
-ssh-keygen -t rsa -f ./ca_host_key -N ''
-
-GSH_CA_PUBLIC_KEY=`cat ca_host_key.pub`
-GSH_CA_PRIVATE_KEY=`cat ca_host_key`
+yes y | ssh-keygen -t rsa -f ./scripts/ca_host_key -q -N ''
 
 MYSQL_ROOT_PASSWORD="rootPass$RANDOM$RANDOM"
 MYSQL_DATABASE="gsh"
@@ -14,9 +11,7 @@ MYSQL_USER="user$RANDOM$RANDOM"
 MYSQL_PASSWORD="userPass$RANDOM$RANDOM"
 
 KEYCLOAK_USER="admin$RANDOM$RANDOM"
-KEYCLOAK_PASSWORD="admin$RANDOM$RANDOM"
-
-rm ca_host_key ca_host_key.pub
+KEYCLOAK_PASSWORD="adminPass$RANDOM$RANDOM"
 
 PORT=8000
 GSH_CHANNEL_SIZE=100
@@ -38,25 +33,25 @@ GSH_CA_LOGIN_URL="/login"
 GSH_CA_ROLE_ID="vault role id"
 GSH_CA_SIGNED_CERT_DURATION=600000000000
 
-GSH_OIDC_BASE_URL=http://localhost:8080/auth/realms
+GSH_OIDC_BASE_URL=http://gsh_keycloak:8080/auth/realms
 GSH_OIDC_REALM=gsh
 GSH_OIDC_AUDIENCE=gsh
+GSH_OIDC_AUTHORIZED_PARTY=gsh
 GSH_OIDC_CLAIM=preferred_username
 
+echo "Keycloak admin username: $KEYCLOAK_USER"
+echo "Keycloak admin password: $KEYCLOAK_PASSWORD"
 
+# Export environment variables to .env file that will be used in build stage
 
-# Export environment variables to .env file
-
-echo "GSH_CA_PUBLIC_KEY=\"$GSH_CA_PUBLIC_KEY\"" > .env
-echo "GSH_CA_PRIVATE_KEY=\"$GSH_CA_PRIVATE_KEY\"" >> .env
-
-echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" >> .env
+echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" > .env
 echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> .env
 echo "MYSQL_USER=$MYSQL_USER" >> .env
 echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
 
 echo "KEYCLOAK_USER=$KEYCLOAK_USER" >> .env
 echo "KEYCLOAK_PASSWORD=$KEYCLOAK_PASSWORD" >> .env
+echo "KEYCLOAK_IMPORT=/tmp/scripts/gsh-realm.json" >> .env
 
 echo "PORT=$PORT" >> .env
 echo "GSH_CHANNEL_SIZE=$GSH_CHANNEL_SIZE" >> .env
@@ -81,4 +76,5 @@ echo "GSH_CA_SIGNED_CERT_DURATION=$GSH_CA_SIGNED_CERT_DURATION" >> .env
 echo "GSH_OIDC_BASE_URL=$GSH_OIDC_BASE_URL" >> .env
 echo "GSH_OIDC_REALM=$GSH_OIDC_REALM" >> .env
 echo "GSH_OIDC_AUDIENCE=$GSH_OIDC_AUDIENCE" >> .env
+echo "GSH_OIDC_AUTHORIZED_PARTY=$GSH_OIDC_AUTHORIZED_PARTY" >> .env
 echo "GSH_OIDC_CLAIM=$GSH_OIDC_CLAIM" >> .env
