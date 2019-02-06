@@ -51,7 +51,7 @@ func main() {
 	e.GET("/status/ready", handlers.StatusReady)
 	e.GET("/status/config", appHandler.StatusConfig)
 	e.GET("/publickey", appHandler.PublicKey)
-	e.GET("/certificates/:keyID", appHandler.CertInfo)
+	e.GET("/certificates/*", appHandler.CertInfo)
 
 	e.POST("/certificates", appHandler.CertCreate)
 

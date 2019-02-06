@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -184,7 +185,7 @@ func getCertInfo(keyID string, api string) (CertInfo, error) {
 	}
 
 	// Get certificate from API
-	resp, err := netClient.Get(api + "/certificates/" + keyID)
+	resp, err := netClient.Get(api + "/certificates/" + url.QueryEscape(keyID))
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",
