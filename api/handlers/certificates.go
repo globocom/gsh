@@ -33,7 +33,7 @@ type certConfig struct {
 // 	"remote_user":"jim",
 //  "remote_host":"192.168.2.105",
 // 	"user_ip":"192.168.2.5",
-//	"jwt": "...."
+// 	"command":"/bin/bash"
 // }
 //
 // - Output sample
@@ -150,7 +150,9 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 	// Get/update our ssh cert serial number
 	criticalOptions := make(map[string]string)
-	// criticalOptions["force-command"] = certRequest.Command
+	if certRequest.Command != "" {
+		criticalOptions["force-command"] = certRequest.Command
+	}
 	criticalOptions["source-address"] = certRequest.UserIP
 
 	perms := ssh.Permissions{
