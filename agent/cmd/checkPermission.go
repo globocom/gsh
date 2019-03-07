@@ -16,12 +16,12 @@ import (
 
 func init() {
 	rootCmd.AddCommand(checkPermissionCmd)
-	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
+	checkPermissionCmd.Flags().String("serial-number", "", "the serial-number of the ssh certificate")
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
 	checkPermissionCmd.Flags().String("api", "", "the endpoint GSH API to check certificate")
 }
 
-// CertInfo is struct with response for GET /certificate/:keyID
+// CertInfo is struct with response for GET /certificate/:serialNumber
 type CertInfo struct {
 	Result     string `json:"result"`
 	RemoteUser string `json:"remote_user"`
@@ -62,15 +62,15 @@ var checkPermissionCmd = &cobra.Command{
 			defer file.Close()
 		}
 
-		// Get key-id flag
-		keyID, err := cmd.Flags().GetString("key-id")
+		// Get serial-number flag
+		serialNumber, err := cmd.Flags().GetString("serial-number")
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"event":  "reading flag parameter from sshd",
-				"topic":  "key-id not informed",
-				"key":    "key-id",
+				"topic":  "serial-number not informed",
+				"key":    "serial-number",
 				"result": "fail",
-			}).Fatal("Failed to read key-id")
+			}).Fatal("Failed to read serial-number")
 			os.Exit(-1)
 		}
 
@@ -87,7 +87,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Defining default field to log
-		auditLogger := log.WithFields(logrus.Fields{"key_id": keyID, "username": username})
+		auditLogger := log.WithFields(logrus.Fields{"serial_number": serialNumber, "username": username})
 
 		// Get GSH API endpoint
 		api, err := cmd.Flags().GetString("api")
@@ -102,7 +102,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Get certificate from GSH API
-		certInfo, err := getCertInfo(keyID, api)
+		certInfo, err := getCertInfo(serialNumber, api)
 		if err != nil {
 			auditLogger.WithFields(logrus.Fields{
 				"event":  "certinfo error validation",
@@ -169,8 +169,8 @@ func checkInterfaces(remoteHost string) bool {
 	return false
 }
 
-// getCertInfo reveives a keyID and check on GSH API for certificate
-func getCertInfo(keyID string, api string) (CertInfo, error) {
+// getCertInfo reveives a serialNumber and check on GSH API for certificate
+func getCertInfo(serialNumber string, api string) (CertInfo, error) {
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
@@ -185,7 +185,7 @@ func getCertInfo(keyID string, api string) (CertInfo, error) {
 	}
 
 	// Get certificate from API
-	resp, err := netClient.Get(api + "/certificates/" + url.QueryEscape(keyID))
+	resp, err := netClient.Get(api + "/certificates/" + url.QueryEscape(serialNumber))
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",
