@@ -90,7 +90,7 @@ func Discovery() (*DiscoveryResponse, error) {
 	// Making discovery GSH request
 	resp, err := netClient.Get(currentTarget.Endpoint + "/status/config")
 	if err != nil {
-		fmt.Printf("GSH API is down: %s\n", currentTarget.Endpoint)
+		fmt.Printf("GSH API is down: %s (%s)\n", currentTarget.Endpoint, err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()

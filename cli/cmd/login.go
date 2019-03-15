@@ -134,7 +134,7 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 		// Making discovery GSH request
 		resp, err := netClient.Get(currentTarget.Endpoint + "/status/config")
 		if err != nil {
-			fmt.Printf("GSH API is down: %s\n", currentTarget.Endpoint)
+			fmt.Printf("GSH API is down: %s (%s)\n", currentTarget.Endpoint, err.Error())
 			os.Exit(1)
 		}
 		defer resp.Body.Close()
