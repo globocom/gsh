@@ -61,7 +61,12 @@ var checkPermissionCmd = &cobra.Command{
 			log.Info("Failed to log to file, using default stdout")
 		} else {
 			log.Out = file
-			defer file.Close()
+			defer func() {
+				ferr := file.Close()
+				if ferr != nil {
+					log.Errorf("Log to file (file close error): %s", ferr.Error())
+				}
+			}()
 		}
 
 		// Get serial-number flag
