@@ -284,6 +284,8 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 		if dry {
+			// Run echoed ssh command (audited)
+			// #nosec
 			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 			sh.Stdout = os.Stdout
 			err = sh.Run()
@@ -294,6 +296,8 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(0)
 		}
 
+		// Run ssh command (audited)
+		// #nosec
 		sh := exec.Command("ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 		sh.Stdout = os.Stdout
 		sh.Stdin = os.Stdin
