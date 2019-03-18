@@ -70,7 +70,11 @@ Change current target (gsh api)
 		}
 
 		// save config (only if target is found)
-		viper.WriteConfig()
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("Client error saving config with current target: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 	},
 }
 

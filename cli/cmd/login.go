@@ -117,7 +117,11 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 
 		// Storing tokens on current target (config file)
 		viper.Set("targets."+currentTarget.Label+".token-storage", setStorage)
-		viper.WriteConfig()
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("Client error saving config with token-storage: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{
