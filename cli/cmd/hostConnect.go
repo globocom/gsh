@@ -53,7 +53,6 @@ import (
 	"github.com/globocom/gsh/cli/cmd/files"
 	"github.com/globocom/gsh/types"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/oauth2"
 )
@@ -71,16 +70,7 @@ can access an host just giving DNS name, or specifying the IP of the host.
 
 		// Get current target
 		currentTarget := new(types.Target)
-		targets := viper.GetStringMap("targets")
-		for k, v := range targets {
-			target := v.(map[string]interface{})
-
-			// format output for activated target
-			if target["current"].(bool) {
-				currentTarget.Label = k
-				currentTarget.Endpoint = target["endpoint"].(string)
-			}
-		}
+		currentTarget = config.GetCurrentTarget()
 
 		// Keys struct for reuse
 		type Keys struct {

@@ -44,6 +44,7 @@ import (
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/globocom/gsh/cli/cmd/auth"
+	"github.com/globocom/gsh/cli/cmd/config"
 	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	"github.com/spf13/cobra"
@@ -68,16 +69,7 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 
 		// Get current target
 		currentTarget := new(types.Target)
-		targets := viper.GetStringMap("targets")
-		for k, v := range targets {
-			target := v.(map[string]interface{})
-
-			// format output for activated target
-			if target["current"].(bool) {
-				currentTarget.Label = k
-				currentTarget.Endpoint = target["endpoint"].(string)
-			}
-		}
+		currentTarget = config.GetCurrentTarget()
 
 		// Check for set-token-storage flag
 		var setStorage string
