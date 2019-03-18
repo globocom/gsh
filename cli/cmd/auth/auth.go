@@ -103,11 +103,19 @@ func Callback(state string, codeVerifier string, redirectURL string, oauth2confi
 				page = fmt.Sprintf(callbackPage, successMarkup)
 
 				// Storing tokens on current target
-				StorageTokens(targetLabel, *oauth2Token)
+				err = StorageTokens(targetLabel, *oauth2Token)
+				if err != nil {
+					// Exchange error
+					msg = fmt.Sprintf(errorMarkup, err.Error())
+					page = fmt.Sprintf(callbackPage, msg)
+				}
 			}
 		}
 		w.Header().Add("Content-Type", "text/html")
-		w.Write([]byte(page))
+		_, err := w.Write([]byte(page))
+		if err != nil {
+			fmt.Printf("Client error writing callback page: (%s)\n", err.Error())
+		}
 	}
 }
 
