@@ -34,6 +34,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -111,7 +112,7 @@ func Callback(state string, codeVerifier string, redirectURL string, oauth2confi
 }
 
 // PKCEgenerator returns a valid codeVerifier and codeChallenge
-func PKCEgenerator() (string, string) {
+func PKCEgenerator() (string, string, error) {
 	// Create a code verifier
 	// https://tools.ietf.org/html/rfc7636#section-4.1
 	codeVerifier := random.String(128, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321-._~")
@@ -119,14 +120,18 @@ func PKCEgenerator() (string, string) {
 	// Generate a code challenge
 	// https://tools.ietf.org/html/rfc7636#section-4.2
 	h := sha256.New()
-	h.Write([]byte(codeVerifier))
+	_, err := h.Write([]byte(codeVerifier))
+	if err != nil {
+		return "", "", errors.New("Client error generating PKCE code: (" + err.Error() + ")")
+	}
+
 	codeChallenge := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	codeChallenge = strings.Replace(codeChallenge, "+", "-", -1)
 	codeChallenge = strings.Replace(codeChallenge, "/", "_", -1)
 	codeChallenge = strings.Replace(codeChallenge, "=", "", -1)
 
 	// return both
-	return codeVerifier, codeChallenge
+	return codeVerifier, codeChallenge, nil
 }
 
 // StorageTokens uses keyring to storage refresh and access tokens
