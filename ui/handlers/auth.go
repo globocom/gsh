@@ -59,7 +59,10 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Verify id_token error")
 	}
 	claims := map[string]string{}
-	userInfo.Claims(&claims)
+	err = userInfo.Claims(&claims)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "error getting userinfo claims ("+err.Error()+")")
+	}
 
 	// save session values
 	sess.Values["rawIDToken"] = rawIDToken
