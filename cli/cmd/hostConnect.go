@@ -286,7 +286,7 @@ can access an host just giving DNS name, or specifying the IP of the host.
 		if dry {
 			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 			sh.Stdout = os.Stdout
-			sh.Run()
+			err = sh.Run()
 			if err != nil {
 				fmt.Printf("Client error running command: (%s)\n", err.Error())
 				os.Exit(1)
