@@ -19,7 +19,10 @@ func (h AppHandler) Auth(c echo.Context) error {
 	sess.Values["state"] = state
 
 	// save session
-	sess.Save(c.Request(), c.Response())
+	err := sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+	}
 
 	return c.Redirect(http.StatusFound, h.oauth2config.AuthCodeURL(state))
 }
@@ -70,7 +73,10 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 	sess.Values[h.config.GetString("AUTH_USERNAME_CLAIM")] = claims[h.config.GetString("AUTH_USERNAME_CLAIM")]
 
 	// save session
-	sess.Save(c.Request(), c.Response())
+	err = sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+	}
 
 	return c.Redirect(http.StatusFound, "/")
 }
@@ -83,7 +89,10 @@ func (h AppHandler) AuthLogout(c echo.Context) error {
 	sess.Options.MaxAge = -1
 
 	// save session
-	sess.Save(c.Request(), c.Response())
+	err := sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+	}
 
 	// Please note the the second parameter "logout.html" is the template name and should
 	// be equal to one of the keys in the TemplateRegistry array defined in main.go

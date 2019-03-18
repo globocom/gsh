@@ -32,7 +32,10 @@ func (h AppHandler) CertificatePage(c echo.Context) error {
 		sess.Values["remote_host"] = c.FormValue("remote_host")
 
 		// save session
-		sess.Save(c.Request(), c.Response())
+		err := sess.Save(c.Request(), c.Response())
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+		}
 
 		return c.Redirect(http.StatusFound, "/auth")
 	}
@@ -65,7 +68,10 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 		sess.Values["remote_host"] = c.FormValue("remote_host")
 
 		// save session
-		sess.Save(c.Request(), c.Response())
+		err := sess.Save(c.Request(), c.Response())
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+		}
 
 		return c.Redirect(http.StatusFound, "/auth")
 	}
@@ -143,7 +149,10 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	// save session
 	sess.Values["user_key"] = nil
 	sess.Values["remote_host"] = nil
-	sess.Save(c.Request(), c.Response())
+	err = sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "error saving session ("+err.Error()+")")
+	}
 
 	type CertResponse struct {
 		Certificate string `json:"certificate"`
