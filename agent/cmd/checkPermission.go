@@ -50,7 +50,9 @@ var checkPermissionCmd = &cobra.Command{
 			if err != nil {
 				log.Info("Failed to log to file, using default stdout")
 			} else {
-				file.Close()
+				if err := file.Close(); err != nil {
+					log.Errorf("Log to stdout (file close error): %s", err.Error())
+				}
 			}
 		}
 
