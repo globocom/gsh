@@ -179,7 +179,11 @@ can access an host just giving DNS name, or specifying the IP of the host.
 				os.Exit(1)
 			}
 			claims := map[string]string{}
-			userInfo.Claims(&claims)
+			err = userInfo.Claims(&claims)
+			if err != nil {
+				fmt.Printf("Client error getting userinfo claims: (%s)\n", err.Error())
+				os.Exit(1)
+			}
 
 			// Set username
 			username = claims[configResponse.UsernameClaim]
@@ -283,6 +287,10 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			sh := exec.Command("echo", "ssh", "-i", keyFile, "-i", certFile, "-l", username, "-p", port, args[0])
 			sh.Stdout = os.Stdout
 			sh.Run()
+			if err != nil {
+				fmt.Printf("Client error running command: (%s)\n", err.Error())
+				os.Exit(1)
+			}
 			os.Exit(0)
 		}
 
@@ -290,7 +298,12 @@ can access an host just giving DNS name, or specifying the IP of the host.
 		sh.Stdout = os.Stdout
 		sh.Stdin = os.Stdin
 		sh.Stderr = os.Stderr
-		sh.Run()
+		err = sh.Run()
+		if err != nil {
+			fmt.Printf("Client error running command: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+		os.Exit(0)
 	},
 }
 
