@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/globocom/gsh/api/config"
+	"github.com/globocom/gsh/api/permissions"
 	"github.com/globocom/gsh/api/storage"
 	"github.com/globocom/gsh/types"
 
@@ -29,6 +30,12 @@ func main() {
 	}
 	defer db.Close()
 
+	// Configuring Casbin
+	permEnforcer, err := permissions.Init(configuration)
+	if err != nil {
+		panic(err)
+	}
+
 	// Configuring channels
 	var defaultChannelSize, _ = strconv.Atoi(os.Getenv("channel_size"))
 	var auditChannel = make(chan types.AuditRecord, defaultChannelSize)
@@ -41,7 +48,7 @@ func main() {
 	e := echo.New()
 
 	// Creating handler with pointers to persistent data
-	appHandler := handlers.NewAppHandler(configuration, auditChannel, logChannel, db)
+	appHandler := handlers.NewAppHandler(configuration, auditChannel, logChannel, db, permEnforcer)
 
 	// Middlewares
 	e.Use(middleware.Logger())
@@ -52,8 +59,12 @@ func main() {
 	e.GET("/status/config", appHandler.StatusConfig)
 	e.GET("/publickey", appHandler.PublicKey)
 	e.GET("/certificates/*", appHandler.CertInfo)
+	e.GET("/policies", appHandler.GetPolicies)
 
 	e.POST("/certificates", appHandler.CertCreate)
+	e.POST("/policies", appHandler.AddPolicies)
+
+	e.DELETE("/policies/:id", appHandler.RemovePolicies)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
