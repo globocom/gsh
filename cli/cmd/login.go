@@ -109,7 +109,11 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 
 		// Storing tokens on current target (config file)
 		viper.Set("targets."+currentTarget.Label+".token-storage", setStorage)
-		viper.WriteConfig()
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("Client error saving config with token-storage: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{
@@ -182,7 +186,11 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 
 		// Generate radom state and PKCE codes
 		state := random.String(32)
-		codeVerifier, codeChallenge := auth.PKCEgenerator()
+		codeVerifier, codeChallenge, err := auth.PKCEgenerator()
+		if err != nil {
+			fmt.Printf("GSH client can not generate PKCE chalenge: %s\n", err.Error())
+			os.Exit(1)
+		}
 
 		// Generate AuthCode URL with PKCE
 		authURL := oauth2config.AuthCodeURL(state, oauth2.SetAuthURLParam("code_challenge", codeChallenge), oauth2.SetAuthURLParam("code_challenge_method", "S256"))

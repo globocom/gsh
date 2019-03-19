@@ -91,7 +91,11 @@ Adds a new entry to the list of available targets
 		targets[args[0]] = map[string]interface{}{"current": setCurrent, "endpoint": args[1]}
 
 		// save config
-		viper.WriteConfig()
+		err = viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("Client error saving config with new target: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 	},
 }
 

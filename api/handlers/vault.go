@@ -82,7 +82,11 @@ func (v *Vault) GetToken() error {
 	}
 	authResponse := authResponse{}
 	decoder := json.NewDecoder(resp.Body)
-	decoder.Decode(&authResponse)
+	err = decoder.Decode(&authResponse)
+	if err != nil {
+		return errors.New("Failed to decode Vault token (" + err.Error() + ")")
+	}
+
 	v.token = authResponse.Auth.ClientToken
 
 	return nil
@@ -91,7 +95,10 @@ func (v *Vault) GetToken() error {
 // SignUserSSHCertificate sign ssh.Certificate for user and return a string with data (without \n at end)
 func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	// get new vault client token
-	v.GetToken()
+	err := v.GetToken()
+	if err != nil {
+		return "", errors.New("Failed to get vault token (" + err.Error() + ")")
+	}
 
 	// set Vault data struct for sign
 	data := make(map[string]string)
@@ -119,7 +126,10 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	// parse Vault response
 	sshCertificate := sshCertificate{}
 	decoder := json.NewDecoder(resp.Body)
-	decoder.Decode(&sshCertificate)
+	err = decoder.Decode(&sshCertificate)
+	if err != nil {
+		return "", errors.New("Failed to decode ssh certificate (" + err.Error() + ")")
+	}
 
 	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
 }
