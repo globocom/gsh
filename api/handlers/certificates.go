@@ -83,18 +83,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Validating JWT before any other action
-	var err error
-	authorizationHeader := c.Request().Header.Get("Authorization")
-	if len(authorizationHeader) == 0 {
-		return c.JSON(http.StatusUnauthorized,
-			map[string]string{"result": "fail", "message": "Authorization header not provided", "details": "Expecting Authorization: JWT id_token"})
-	}
-	jwt := strings.Split(authorizationHeader, "JWT")
-	if len(jwt) != 2 {
-		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Authorization header malformed", "details": "Expecting Authorization: JWT id_token"})
-	}
-	err = ValidateJWT(jwt[1], h.config)
+	_, err := ValidateJWT(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})

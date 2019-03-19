@@ -11,22 +11,33 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo"
 	"github.com/spf13/viper"
 	jose "gopkg.in/square/go-jose.v2"
 )
 
-type idToken struct {
-	Issuer          string                 `json:"iss"`
-	Subject         string                 `json:"sub"`
-	Audience        audience               `json:"aud"`
-	AuthorizedParty string                 `json:"azp"`
-	Expiry          jsonTime               `json:"exp"`
-	IssuedAt        jsonTime               `json:"iat"`
-	Nonce           string                 `json:"nonce"`
-	AtHash          string                 `json:"at_hash"`
-	ClaimNames      map[string]string      `json:"_claim_names"`
-	ClaimSources    map[string]claimSource `json:"_claim_sources"`
+// IDToken is the struct that holds all information about a JWT token
+type IDToken struct {
+	Issuer            string                 `json:"iss"`
+	Subject           string                 `json:"sub"`
+	Audience          audience               `json:"aud"`
+	AuthorizedParty   string                 `json:"azp"`
+	Expiry            jsonTime               `json:"exp"`
+	IssuedAt          jsonTime               `json:"iat"`
+	Nonce             string                 `json:"nonce"`
+	AtHash            string                 `json:"at_hash"`
+	Name              string                 `json:"name"`
+	PreferredUsername string                 `json:"preferred_username"`
+	GivenName         string                 `json:"given_name"`
+	FamilyName        string                 `json:"family_name"`
+	MiddleName        string                 `json:"middle_name"`
+	Nickname          string                 `json:"nickname"`
+	PhoneNumber       string                 `json:"phone_number"`
+	Email             string                 `json:"email"`
+	ClaimNames        map[string]string      `json:"_claim_names"`
+	ClaimSources      map[string]claimSource `json:"_claim_sources"`
 }
+
 type claimSource struct {
 	Endpoint    string `json:"endpoint"`
 	AccessToken string `json:"access_token"`
@@ -34,33 +45,48 @@ type claimSource struct {
 type jsonTime time.Time
 type audience []string
 
-// ValidateJWT validates JWT based on audience, expiration, signature and issuer
-func ValidateJWT(jwt string, config viper.Viper) error {
+// ValidateJWT validates JWT based on audience, expiration, signature and issuer and returns a valid JWT token if it succeeds
+func ValidateJWT(c echo.Context, config viper.Viper) (IDToken, error) {
 	var err error
-	err = verifyAudience(jwt, config.GetString("oidc_audience"))
-	if err != nil {
-		return fmt.Errorf(err.Error())
+	token := IDToken{}
+	authorizationHeader := c.Request().Header.Get("Authorization")
+	if len(authorizationHeader) == 0 {
+		return token, fmt.Errorf("JWT: %s", err.Error())
 	}
-	err = verifyAuthorizedParty(jwt, config.GetString("oidc_authorized_party"))
-	if err != nil {
-		return fmt.Errorf(err.Error())
+	jwtSlice := strings.Split(authorizationHeader, "JWT")
+	if len(jwtSlice) != 1 {
+		return token, fmt.Errorf("JWT: %s", err.Error())
 	}
-	err = verifyExpiry(jwt)
+	jwt := jwtSlice[0]
+
+	token, err = parseIDToken(jwt)
 	if err != nil {
-		return fmt.Errorf(err.Error())
+		return token, fmt.Errorf(err.Error())
+	}
+	err = verifyAudience(token, config.GetString("oidc_audience"))
+	if err != nil {
+		return token, fmt.Errorf(err.Error())
+	}
+	err = verifyAuthorizedParty(token, config.GetString("oidc_authorized_party"))
+	if err != nil {
+		return token, fmt.Errorf(err.Error())
+	}
+	err = verifyExpiry(token)
+	if err != nil {
+		return token, fmt.Errorf(err.Error())
 	}
 	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
 	err = verifySignature(jwt, keyURL)
 	if err != nil {
-		return fmt.Errorf(err.Error())
+		return token, fmt.Errorf(err.Error())
 	}
 	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
-	err = verifyIssuer(jwt, issuer)
+	err = verifyIssuer(token, issuer)
 	if err != nil {
-		return fmt.Errorf(err.Error())
+		return token, fmt.Errorf(err.Error())
 	}
 
-	return nil
+	return token, nil
 }
 
 func verifySignature(jwt, certsURL string) error {
@@ -104,22 +130,14 @@ func verifySignature(jwt, certsURL string) error {
 	return nil
 }
 
-func verifyExpiry(jwt string) error {
-	token, err := parseIDToken(jwt)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+func verifyExpiry(token IDToken) error {
 	if time.Time(token.Expiry).Before(time.Now()) {
 		return fmt.Errorf("Token is expired")
 	}
 	return nil
 }
 
-func verifyAudience(jwt, audience string) error {
-	token, err := parseIDToken(jwt)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+func verifyAudience(token IDToken, audience string) error {
 	fail := false
 	for _, aud := range token.Audience {
 		if aud == audience {
@@ -132,12 +150,8 @@ func verifyAudience(jwt, audience string) error {
 	return nil
 }
 
-func verifyAuthorizedParty(jwt, azp string) error {
-	token, err := parseIDToken(jwt)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	// Verifies is authorized party is present
+func verifyAuthorizedParty(token IDToken, azp string) error {
+	// Verifies if authorized party is present
 	if len(azp) == 0 && len(token.AuthorizedParty) == 0 {
 		return nil
 	}
@@ -147,19 +161,15 @@ func verifyAuthorizedParty(jwt, azp string) error {
 	return nil
 }
 
-func verifyIssuer(jwt, issuer string) error {
-	token, err := parseIDToken(jwt)
-	if err != nil {
-		return fmt.Errorf(err.Error())
-	}
+func verifyIssuer(token IDToken, issuer string) error {
 	if token.Issuer != issuer {
 		return fmt.Errorf("Id Token issuer not recognized")
 	}
 	return nil
 }
 
-func parseIDToken(jwt string) (idToken, error) {
-	var token idToken
+func parseIDToken(jwt string) (IDToken, error) {
+	var token IDToken
 	parsedJwt, err := parseJWT(jwt)
 	if err != nil {
 		return token, fmt.Errorf("Malformed jwt: %v", err)
