@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -193,6 +194,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	signedCert := k.(*ssh.Certificate)
 	//assigning the new key id to store the new value into db
 	certRequest.CertKeyID = signedCert.KeyId
+	certRequest.SerialNumber = strconv.FormatUint(signedCert.Serial, 10)
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
@@ -260,14 +262,15 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 func (h AppHandler) CertInfo(c echo.Context) error {
 	keyPath := c.Request().RequestURI
 	s := strings.SplitAfterN(keyPath, "/", 3)
-	keyID := s[2]
-	keyID, err := url.QueryUnescape(keyID)
+	serialNumber := s[2]
+	serialNumber, err := url.QueryUnescape(serialNumber)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Error unescaping url query", "details": err.Error()})
 	}
 	certRequest := new(types.CertRequest)
-	h.db.Where("cert_key_id = ?", keyID).First(&certRequest)
+	//sshd only gives 15 characters for serial number
+	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "succes", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }

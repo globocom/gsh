@@ -35,6 +35,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/globocom/gsh/types"
@@ -56,6 +57,12 @@ func GetCurrentTarget() *types.Target {
 	targets := viper.GetStringMap("targets")
 	for k, v := range targets {
 		target := v.(map[string]interface{})
+
+		// check if target is properly configured
+		if target["current"] == nil {
+			fmt.Printf("You need to configure a target using target-add command\n")
+			os.Exit(1)
+		}
 
 		if target["current"] != nil {
 			// format output for activated target
@@ -90,7 +97,7 @@ func Discovery() (*DiscoveryResponse, error) {
 	// Making discovery GSH request
 	resp, err := netClient.Get(currentTarget.Endpoint + "/status/config")
 	if err != nil {
-		fmt.Printf("GSH API is down: %s\n", currentTarget.Endpoint)
+		fmt.Printf("GSH API is down: %s (%s)\n", currentTarget.Endpoint, err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
