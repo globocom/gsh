@@ -2,6 +2,7 @@ package permissions
 
 import (
 	"errors"
+	"fmt"
 
 	gormadapter "github.com/Krlier/gorm-adapter"
 	"github.com/casbin/casbin"
@@ -12,7 +13,6 @@ import (
 func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	a := gormadapter.NewAdapter("mysql", config.GetString("storage_uri"), true)
 	m := casbin.NewModel()
-	var err error
 
 	// Add user request definitions:
 	m.AddDef("r", "r", "id, team, remote_user, sourceip, targetip, actions")
@@ -40,10 +40,14 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, errors.New("Could not create new Enforcer")
 	}
+	e.SetModel(m)
 	e.EnableAutoSave(true)
 	check, err := e.AddPolicySafe(config.GetString("perm_admin"), "admin")
-	if !check {
+	if err != nil {
 		return nil, err
+	}
+	if err == nil && check == false {
+		fmt.Printf("Casbin admin policy alread exists\n")
 	}
 
 	return e, nil
