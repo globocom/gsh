@@ -220,3 +220,51 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role removed"})
 }
+
+// AssociateRoleToUser associates a role to a specific user
+func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
+	// Validates JWT token before any other action
+	token, err := ValidateJWT(c, h.config)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized,
+			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+
+	// Validates if the user associating the role has permission to do so
+	field := h.config.GetString("oidc_claim")
+	username, err := getField(&token, field)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
+	}
+	if username != h.config.GetString("perm_admin") {
+		return c.JSON(http.StatusForbidden,
+			map[string]string{"result": "fail", "message": "This user can't associate role to an user"})
+	}
+
+	roleID := c.Param("role")
+	user := c.Param("user")
+
+	// Checks if role exists
+	h.permEnforcer.LoadPolicy()
+	roles := h.permEnforcer.GetFilteredPolicy(0, roleID)
+	var roleFound bool
+	for _, role := range roles {
+		if role[0] == roleID {
+			roleFound = true
+		}
+	}
+
+	if !roleFound {
+		return c.JSON(http.StatusNotFound,
+			map[string]string{"result": "fail", "message": "Role ID not found"})
+	}
+
+	// Add role to user if found
+	check := h.permEnforcer.AddRoleForUser(user, roleID)
+	if !check {
+		fmt.Printf("User (%s) alread have this policy policy (%s)\n", user, roleID)
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role associated"})
+}
