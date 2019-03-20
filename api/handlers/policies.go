@@ -42,14 +42,7 @@ func (h AppHandler) GetPolicies(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist"})
 	}
 
-	permEnforcer := h.permEnforcer
-	permEnforcer.LoadPolicy()
-
-	permissions := permEnforcer.GetPermissionsForUser(username)
-	if len(permissions) == 0 {
-		return c.JSON(http.StatusNotFound,
-			map[string]string{"result": "fail", "message": "User has no permissions", "details": err.Error()})
-	}
+	permissions := h.permEnforcer.GetPermissionsForUser(username)
 
 	return c.JSON(http.StatusOK, map[string][][]string{"policies": permissions})
 }
