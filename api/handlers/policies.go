@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -20,11 +21,15 @@ type Policy struct {
 	Actions    string `json:"actions"`
 }
 
-// getField returns the value of a field in a token or "<invalid Value>" if the field doesn't exist
-func getField(token *IDToken, field string) string {
+// getField returns the value of a field in a token or error if the field doesn't exist
+func getField(token *IDToken, field string) (string, error) {
 	r := reflect.ValueOf(token)
 	f := reflect.Indirect(r).FieldByName(field)
-	return f.String()
+	result := f.String()
+	if result == "<invalid Value>" {
+		return "", fmt.Errorf("getField: Field (%s) not found at IDToken", field)
+	}
+	return result, nil
 }
 
 // GetPolicies prints all the existing policies
@@ -36,10 +41,10 @@ func (h AppHandler) GetPolicies(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 	field := h.config.GetString("oidc_claim")
-	username := getField(&token, field)
-	if username == "<invalid Value>" {
+	username, err := getField(&token, field)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist"})
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
 
 	permissions := h.permEnforcer.GetPermissionsForUser(username)
@@ -58,10 +63,10 @@ func (h AppHandler) AddPolicies(c echo.Context) error {
 
 	// Validates if the user creating the policy has permission to do so
 	field := h.config.GetString("oidc_claim")
-	username := getField(&token, field)
-	if username == "<invalid Value>" {
+	username, err := getField(&token, field)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist"})
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
 	if username != h.config.GetString("perm_admin") {
 		return c.JSON(http.StatusForbidden,
@@ -115,10 +120,10 @@ func (h AppHandler) RemovePolicies(c echo.Context) error {
 
 	// Validates if the user deleting the policy has permission to do so
 	field := h.config.GetString("oidc_claim")
-	username := getField(&token, field)
-	if username == "<invalid Value>" {
+	username, err := getField(&token, field)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist"})
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
 	if username != h.config.GetString("perm_admin") {
 		return c.JSON(http.StatusForbidden,
