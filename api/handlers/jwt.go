@@ -57,10 +57,10 @@ func ValidateJWT(c echo.Context, config viper.Viper) (IDToken, error) {
 		return token, errors.New("ValidateJWT: Authorization header not set")
 	}
 	jwtSlice := strings.Split(authorizationHeader, "JWT")
-	if len(jwtSlice) != 1 {
-		return token, errors.New("ValidateJWT: JWT string at authorization header not found")
+	if len(jwtSlice) != 2 {
+		return token, fmt.Errorf("ValidateJWT: Authorization header is not at format 'Authorization: JWT <string with JWT>'")
 	}
-	jwt := jwtSlice[0]
+	jwt := jwtSlice[1]
 
 	// Parse JWT
 	token, err = parseIDToken(jwt)
