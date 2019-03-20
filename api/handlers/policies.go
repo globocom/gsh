@@ -2,24 +2,14 @@ package handlers
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"reflect"
-	"regexp"
 
-	"github.com/google/uuid"
+	"github.com/globocom/gsh/types"
 
 	"github.com/labstack/echo"
 )
-
-// Policy is the struct responsible for holding all information needed for a policy
-type Policy struct {
-	ID         string `json:"id"`
-	Team       string `json:"team"`
-	RemoteUser string `json:"remoteUser"`
-	SourceIP   string `json:"sourceIP"`
-	TargetIP   string `json:"targetIP"`
-	Actions    string `json:"actions"`
-}
 
 // getField returns the value of a field in a token or error if the field doesn't exist
 func getField(token *IDToken, field string) (string, error) {
@@ -32,8 +22,8 @@ func getField(token *IDToken, field string) (string, error) {
 	return result, nil
 }
 
-// GetPolicies prints all the existing policies
-func (h AppHandler) GetPolicies(c echo.Context) error {
+// GetRolesForMe prints all the existing policies
+func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	// Validates JWT token before any other action
 	token, err := ValidateJWT(c, h.config)
 	if err != nil {
@@ -47,13 +37,69 @@ func (h AppHandler) GetPolicies(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
 
-	permissions := h.permEnforcer.GetPermissionsForUser(username)
+	// permissions := h.permEnforcer.GetPolicy()
+	h.permEnforcer.LoadPolicy()
+	myRoles := h.permEnforcer.GetRolesForUser(username)
+	allRoles := h.permEnforcer.GetPolicy()
 
-	return c.JSON(http.StatusOK, map[string][][]string{"policies": permissions})
+	var forMeRoles []types.Policy
+	for _, role := range allRoles {
+		for _, myRole := range myRoles {
+			if role[0] == myRole {
+				forMeRoles = append(forMeRoles, types.Policy{
+					ID:         role[0],
+					Team:       role[1],
+					RemoteUser: role[2],
+					SourceIP:   role[3],
+					TargetIP:   role[4],
+					Actions:    role[5],
+				})
+			}
+		}
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{"result": "success", "roles": forMeRoles})
 }
 
-// AddPolicies adds a new policy
-func (h AppHandler) AddPolicies(c echo.Context) error {
+// GetRoles prints all the existing roles
+func (h AppHandler) GetRoles(c echo.Context) error {
+	// Validates JWT token before any other action
+	token, err := ValidateJWT(c, h.config)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized,
+			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+	field := h.config.GetString("oidc_claim")
+	username, err := getField(&token, field)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
+	}
+	if username != h.config.GetString("perm_admin") {
+		return c.JSON(http.StatusForbidden,
+			map[string]string{"result": "fail", "message": "This user can't list roles"})
+	}
+
+	h.permEnforcer.LoadPolicy()
+	roles := h.permEnforcer.GetPolicy()
+
+	var completedRoles []types.Policy
+	for _, role := range roles {
+		completedRoles = append(completedRoles, types.Policy{
+			ID:         role[0],
+			Team:       role[1],
+			RemoteUser: role[2],
+			SourceIP:   role[3],
+			TargetIP:   role[4],
+			Actions:    role[5],
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{"result": "success", "roles": completedRoles})
+}
+
+// AddRoles adds a new role
+func (h AppHandler) AddRoles(c echo.Context) error {
 	// Validates JWT token before any other action
 	token, err := ValidateJWT(c, h.config)
 	if err != nil {
@@ -70,33 +116,38 @@ func (h AppHandler) AddPolicies(c echo.Context) error {
 	}
 	if username != h.config.GetString("perm_admin") {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't create policies"})
+			map[string]string{"result": "fail", "message": "This user can't create roles"})
 	}
 
 	// Binds the read policy to the "policy" variable
-	permEnforcer := h.permEnforcer
-	policy := new(Policy)
-	if err = c.Bind(policy); err != nil {
+	requestPolicy := new(types.Policy)
+	if err = c.Bind(requestPolicy); err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Failed creating new policy", "details": err.Error()})
 	}
-	// Creates uuid for the new policy
-	uuid := uuid.New()
-	policy.ID = uuid.String()
+	// Checks for policy ID
+	if requestPolicy.ID == "" {
+		return c.JSON(http.StatusBadRequest,
+			map[string]string{"result": "fail", "message": "Invalid ID", "details": err.Error()})
+	}
 
 	// Validates if the IPs read are in a valid format
-	re, _ := regexp.Compile(`^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`)
-	if !re.MatchString(policy.SourceIP) {
+	_, sorceIPNet, err := net.ParseCIDR(requestPolicy.SourceIP)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid SourceIP format"})
+			map[string]string{"result": "fail", "message": "Invalid SourceIP format", "details": err.Error()})
 	}
-	if !re.MatchString(policy.TargetIP) {
+	_, targetIPNet, err := net.ParseCIDR(requestPolicy.TargetIP)
+	if err != nil {
 		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid TargetIP format"})
+			map[string]string{"result": "fail", "message": "Invalid TargetIP format", "details": err.Error()})
 	}
+	requestPolicy.SourceIP = sorceIPNet.String()
+	requestPolicy.TargetIP = targetIPNet.String()
 
 	// Adds policy if not existent
-	check, err := permEnforcer.AddPolicySafe(policy.ID, policy.Team, policy.RemoteUser, policy.SourceIP, policy.TargetIP, policy.Actions)
+	h.permEnforcer.LoadPolicy()
+	check, err := h.permEnforcer.AddPolicySafe(requestPolicy.ID, requestPolicy.Team, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Error adding new policy", "details": err.Error()})
@@ -106,11 +157,11 @@ func (h AppHandler) AddPolicies(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "This policy already exists"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Policy created"})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role created"})
 }
 
-// RemovePolicies removes an existent policy
-func (h AppHandler) RemovePolicies(c echo.Context) error {
+// RemoveRole removes an existent policy
+func (h AppHandler) RemoveRole(c echo.Context) error {
 	// Validates JWT token before any other action
 	token, err := ValidateJWT(c, h.config)
 	if err != nil {
@@ -127,27 +178,45 @@ func (h AppHandler) RemovePolicies(c echo.Context) error {
 	}
 	if username != h.config.GetString("perm_admin") {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't delete policies"})
+			map[string]string{"result": "fail", "message": "This user can't delete roles"})
 	}
 
-	//
+	removeRoleID := c.Param("role")
 
-	// Binds the read policy to the "policy" variable
-	permEnforcer := h.permEnforcer
-	policy := new(Policy)
-	if err = c.Bind(policy); err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Failed creating new policy", "details": err.Error()})
+	// Checks if role exists
+	h.permEnforcer.LoadPolicy()
+	roles := h.permEnforcer.GetFilteredPolicy(0, removeRoleID)
+	var roleFound bool
+	var removeRole types.Policy
+	for _, role := range roles {
+		if role[0] == removeRoleID {
+			roleFound = true
+			removeRole = types.Policy{
+				ID:         role[0],
+				Team:       role[1],
+				RemoteUser: role[2],
+				SourceIP:   role[3],
+				TargetIP:   role[4],
+				Actions:    role[5],
+			}
+		}
+	}
+
+	if !roleFound {
+		return c.JSON(http.StatusNotFound,
+			map[string]string{"result": "fail", "message": "Role ID not found"})
 	}
 
 	// Removes policy if found
-	check, err := permEnforcer.RemovePolicySafe(policy.ID, policy.Team, policy.RemoteUser, policy.SourceIP, policy.TargetIP, policy.Actions)
-	if !check {
-		return c.JSON(http.StatusConflict,
-			map[string]string{"result": "fail", "message": "Policy not found", "details": err.Error()})
+	check, err := h.permEnforcer.RemovePolicySafe(removeRole.ID, removeRole.Team, removeRole.RemoteUser, removeRole.SourceIP, removeRole.TargetIP, removeRole.Actions)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Policy can not be removed", "details": err.Error()})
+	}
+	if err == nil && check == false {
+		return c.JSON(http.StatusNotFound,
+			map[string]string{"result": "fail", "message": "Role ID not found"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Policy removed"})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role removed"})
 }
-
-// Por último, a verificação utilizando e.Enforce()

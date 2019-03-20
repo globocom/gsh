@@ -59,12 +59,12 @@ func main() {
 	e.GET("/status/config", appHandler.StatusConfig)
 	e.GET("/publickey", appHandler.PublicKey)
 	e.GET("/certificates/*", appHandler.CertInfo)
-	e.GET("/policies", appHandler.GetPolicies)
-
 	e.POST("/certificates", appHandler.CertCreate)
-	e.POST("/policies", appHandler.AddPolicies)
 
-	e.DELETE("/policies/:id", appHandler.RemovePolicies)
+	e.GET("/authz/roles/me", appHandler.GetRolesForMe)
+	e.GET("/authz/roles", appHandler.GetRoles)
+	e.POST("/authz/roles", appHandler.AddRoles)
+	e.DELETE("/authz/roles/:role", appHandler.RemoveRole)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

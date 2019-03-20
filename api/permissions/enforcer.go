@@ -42,13 +42,26 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	}
 	e.SetModel(m)
 	e.EnableAutoSave(true)
-	check, err := e.AddPolicySafe(config.GetString("perm_admin"), "admin")
+
+	// Reload policies from database before add admin policies
+	err = e.LoadPolicy()
+	if err != nil {
+		return nil, errors.New("Could not load policies")
+	}
+
+	// AddPolicySafe(requestPolicy.ID, requestPolicy.Team, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
+	check, err := e.AddPolicySafe("admin", "*", "*", "0.0.0.0/0", "0.0.0.0/0", "*")
 	if err != nil {
 		return nil, err
 	}
 	if err == nil && check == false {
 		fmt.Printf("Casbin admin policy alread exists\n")
 	}
+	check = e.AddRoleForUser(config.GetString("perm_admin"), "admin")
+	if !check {
+		fmt.Printf("GSH admin (%s) alread have admin policy\n", config.GetString("perm_admin"))
+	}
+	e.EnableLog(true)
 
 	return e, nil
 }
