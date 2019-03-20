@@ -51,11 +51,11 @@ func ValidateJWT(c echo.Context, config viper.Viper) (IDToken, error) {
 	token := IDToken{}
 	authorizationHeader := c.Request().Header.Get("Authorization")
 	if len(authorizationHeader) == 0 {
-		return token, fmt.Errorf("JWT: %s", err.Error())
+		return token, errors.New("Authorization header not set")
 	}
 	jwtSlice := strings.Split(authorizationHeader, "JWT")
 	if len(jwtSlice) != 1 {
-		return token, fmt.Errorf("JWT: %s", err.Error())
+		return token, errors.New("JWT string at authorization header not found")
 	}
 	jwt := jwtSlice[0]
 
