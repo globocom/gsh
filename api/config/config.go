@@ -12,7 +12,10 @@ import (
 func Init() viper.Viper {
 	// Configure defaults
 	if len(os.Getenv("PORT")) == 0 {
-		os.Setenv("PORT", "8000")
+		err := os.Setenv("PORT", "8000")
+		if err != nil {
+			fmt.Println("Error setting PORT environment variable")
+		}
 	}
 	config := viper.New()
 	config.SetConfigType("json")

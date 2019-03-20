@@ -66,7 +66,11 @@ var targetRemoveCmd = &cobra.Command{
 		targets[args[0]] = nil
 
 		// save config
-		viper.WriteConfig()
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("Client error saving config without target: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 	},
 }
 

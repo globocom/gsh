@@ -30,6 +30,7 @@
 package files
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 
@@ -44,7 +45,7 @@ func GetConfigPath() (string, error) {
 	// Find home directory.
 	home, err := homedir.Dir()
 	if err != nil {
-		return "", err
+		return "", errors.New("File error finding homedir (" + err.Error() + ")")
 	}
 
 	// check if .gshc folder exists and creates if it not exists
@@ -52,7 +53,7 @@ func GetConfigPath() (string, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)
 		if err != nil {
-			return "", err
+			return "", errors.New("File error creating ~/.gsh dir (" + err.Error() + ")")
 		}
 	}
 	return path, nil
@@ -63,7 +64,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	// Find home directory.
 	configPath, err := GetConfigPath()
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("File error getting config path (" + err.Error() + ")")
 	}
 
 	// Set specific path for certificates and private keys
@@ -71,7 +72,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
 		err := os.Mkdir(certPath, 0750)
 		if err != nil {
-			return "", "", err
+			return "", "", errors.New("File error creating cert path (" + err.Error() + ")")
 		}
 	}
 
@@ -83,7 +84,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)
 		if err != nil {
-			return "", "", err
+			return "", "", errors.New("File error creating target cert path (" + err.Error() + ")")
 		}
 	}
 
@@ -91,21 +92,36 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	id := random.String(32)
 	keyFileLocation := path + "/" + id
 	keyFile, err := os.Create(keyFileLocation)
-	defer keyFile.Close()
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("File error creating keyfile (" + err.Error() + ")")
 	}
-	ioutil.WriteFile(keyFileLocation, []byte(key), 0600)
-	os.Chmod(keyFileLocation, 0600)
+	err = ioutil.WriteFile(keyFileLocation, []byte(key), 0600)
+	if err != nil {
+		return "", "", errors.New("File error writing keyfile (" + err.Error() + ")")
+	}
+	err = os.Chmod(keyFileLocation, 0600)
+	if err != nil {
+		return "", "", errors.New("File error chmod keyfile (" + err.Error() + ")")
+	}
+	err = keyFile.Close()
+	if err != nil {
+		return "", "", errors.New("File error closing keyfile (" + err.Error() + ")")
+	}
 
 	// Store cert file with suffix "-cert.pub" (https://man.openbsd.org/ssh.1#i)
 	certLocation := path + "/" + id + "-cert.pub"
 	certFile, err := os.Create(certLocation)
-	defer certFile.Close()
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("File error creating certfile (" + err.Error() + ")")
 	}
-	ioutil.WriteFile(certLocation, []byte(cert), 0650)
+	err = ioutil.WriteFile(certLocation, []byte(cert), 0650)
+	if err != nil {
+		return "", "", errors.New("File error writing certfile (" + err.Error() + ")")
+	}
+	err = certFile.Close()
+	if err != nil {
+		return "", "", errors.New("File error closing certfile (" + err.Error() + ")")
+	}
 
 	return keyFileLocation, certLocation, nil
 }

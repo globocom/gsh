@@ -15,7 +15,8 @@ import (
 // Inspired on https://github.com/kr/pty
 
 func main() {
-	// Create arbitrary command.
+	// Create arbitrary command (audited).
+	// #nosec
 	c := exec.Command("bash")
 
 	// Start the command with a pty.
