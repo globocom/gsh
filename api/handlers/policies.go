@@ -42,17 +42,16 @@ func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	myRoles := h.permEnforcer.GetRolesForUser(username)
 	allRoles := h.permEnforcer.GetPolicy()
 
-	var forMeRoles []types.Policy
+	var forMeRoles []types.Role
 	for _, role := range allRoles {
 		for _, myRole := range myRoles {
 			if role[0] == myRole {
-				forMeRoles = append(forMeRoles, types.Policy{
+				forMeRoles = append(forMeRoles, types.Role{
 					ID:         role[0],
-					Team:       role[1],
-					RemoteUser: role[2],
-					SourceIP:   role[3],
-					TargetIP:   role[4],
-					Actions:    role[5],
+					RemoteUser: role[1],
+					SourceIP:   role[2],
+					TargetIP:   role[3],
+					Actions:    role[4],
 				})
 			}
 		}
@@ -83,15 +82,14 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 	h.permEnforcer.LoadPolicy()
 	roles := h.permEnforcer.GetPolicy()
 
-	var completedRoles []types.Policy
+	var completedRoles []types.Role
 	for _, role := range roles {
-		completedRoles = append(completedRoles, types.Policy{
+		completedRoles = append(completedRoles, types.Role{
 			ID:         role[0],
-			Team:       role[1],
-			RemoteUser: role[2],
-			SourceIP:   role[3],
-			TargetIP:   role[4],
-			Actions:    role[5],
+			RemoteUser: role[1],
+			SourceIP:   role[2],
+			TargetIP:   role[3],
+			Actions:    role[4],
 		})
 	}
 
@@ -120,7 +118,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	}
 
 	// Binds the read role to the "requestPolicy" variable
-	requestPolicy := new(types.Policy)
+	requestPolicy := new(types.Role)
 	if err = c.Bind(requestPolicy); err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Failed creating new role", "details": err.Error()})
@@ -147,7 +145,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 
 	// Adds role if not existent
 	h.permEnforcer.LoadPolicy()
-	check, err := h.permEnforcer.AddPolicySafe(requestPolicy.ID, requestPolicy.Team, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
+	check, err := h.permEnforcer.AddPolicySafe(requestPolicy.ID, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Error adding new role", "details": err.Error()})
@@ -187,17 +185,16 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 	h.permEnforcer.LoadPolicy()
 	roles := h.permEnforcer.GetFilteredPolicy(0, removeRoleID)
 	var roleFound bool
-	var removeRole types.Policy
+	var removeRole types.Role
 	for _, role := range roles {
 		if role[0] == removeRoleID {
 			roleFound = true
-			removeRole = types.Policy{
+			removeRole = types.Role{
 				ID:         role[0],
-				Team:       role[1],
-				RemoteUser: role[2],
-				SourceIP:   role[3],
-				TargetIP:   role[4],
-				Actions:    role[5],
+				RemoteUser: role[1],
+				SourceIP:   role[2],
+				TargetIP:   role[3],
+				Actions:    role[4],
 			}
 		}
 	}
@@ -208,7 +205,7 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 	}
 
 	// Removes role if found
-	check, err := h.permEnforcer.RemovePolicySafe(removeRole.ID, removeRole.Team, removeRole.RemoteUser, removeRole.SourceIP, removeRole.TargetIP, removeRole.Actions)
+	check, err := h.permEnforcer.RemovePolicySafe(removeRole.ID, removeRole.RemoteUser, removeRole.SourceIP, removeRole.TargetIP, removeRole.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Role can not be removed", "details": err.Error()})
