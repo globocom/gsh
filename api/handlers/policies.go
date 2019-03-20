@@ -22,7 +22,7 @@ func getField(token *IDToken, field string) (string, error) {
 	return result, nil
 }
 
-// GetRolesForMe prints all the existing policies
+// GetRolesForMe prints all the existing roles to current user
 func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	// Validates JWT token before any other action
 	token, err := ValidateJWT(c, h.config)
@@ -107,7 +107,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
-	// Validates if the user creating the policy has permission to do so
+	// Validates if the user creating the role has permission to do so
 	field := h.config.GetString("oidc_claim")
 	username, err := getField(&token, field)
 	if err != nil {
@@ -119,13 +119,13 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "This user can't create roles"})
 	}
 
-	// Binds the read policy to the "policy" variable
+	// Binds the read role to the "requestPolicy" variable
 	requestPolicy := new(types.Policy)
 	if err = c.Bind(requestPolicy); err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Failed creating new policy", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Failed creating new role", "details": err.Error()})
 	}
-	// Checks for policy ID
+	// Checks for role ID
 	if requestPolicy.ID == "" {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Invalid ID", "details": err.Error()})
@@ -145,22 +145,22 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	requestPolicy.SourceIP = sorceIPNet.String()
 	requestPolicy.TargetIP = targetIPNet.String()
 
-	// Adds policy if not existent
+	// Adds role if not existent
 	h.permEnforcer.LoadPolicy()
 	check, err := h.permEnforcer.AddPolicySafe(requestPolicy.ID, requestPolicy.Team, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Error adding new policy", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Error adding new role", "details": err.Error()})
 	}
 	if !check {
 		return c.JSON(http.StatusConflict,
-			map[string]string{"result": "fail", "message": "This policy already exists"})
+			map[string]string{"result": "fail", "message": "This role already exists"})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role created"})
 }
 
-// RemoveRole removes an existent policy
+// RemoveRole removes an existent role
 func (h AppHandler) RemoveRole(c echo.Context) error {
 	// Validates JWT token before any other action
 	token, err := ValidateJWT(c, h.config)
@@ -169,7 +169,7 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
-	// Validates if the user deleting the policy has permission to do so
+	// Validates if the user deleting the role has permission to do so
 	field := h.config.GetString("oidc_claim")
 	username, err := getField(&token, field)
 	if err != nil {
@@ -207,11 +207,11 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Role ID not found"})
 	}
 
-	// Removes policy if found
+	// Removes role if found
 	check, err := h.permEnforcer.RemovePolicySafe(removeRole.ID, removeRole.Team, removeRole.RemoteUser, removeRole.SourceIP, removeRole.TargetIP, removeRole.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Policy can not be removed", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Role can not be removed", "details": err.Error()})
 	}
 	if err == nil && check == false {
 		return c.JSON(http.StatusNotFound,
@@ -263,7 +263,7 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 	// Add role to user if found
 	check := h.permEnforcer.AddRoleForUser(user, roleID)
 	if !check {
-		fmt.Printf("User (%s) alread have this policy policy (%s)\n", user, roleID)
+		fmt.Printf("User (%s) alread have this role (%s)\n", user, roleID)
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role associated"})
