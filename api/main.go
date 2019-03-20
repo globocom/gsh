@@ -65,8 +65,9 @@ func main() {
 	e.GET("/authz/roles", appHandler.GetRoles)
 	e.POST("/authz/roles", appHandler.AddRoles)
 	e.DELETE("/authz/roles/:role", appHandler.RemoveRole)
-	e.POST("/authz/roles/:role/:user", appHandler.AssociateRoleToUser)
 	e.GET("/authz/user/:user", appHandler.GetRolesByUser)
+	e.POST("/authz/roles/:role/:user", appHandler.AssociateRoleToUser)
+	e.DELETE("/authz/roles/:role/:user", appHandler.DisassociateRoleToUser)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }
