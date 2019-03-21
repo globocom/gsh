@@ -88,10 +88,37 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Validating JWT before any other action
-	_, err := ValidateJWT(c, h.config)
+	token, err := ValidateJWT(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+	field := h.config.GetString("oidc_claim")
+	username, err := getField(&token, field)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
+	}
+
+	// Get user roles
+	h.permEnforcer.LoadPolicy()
+	myRoles := h.permEnforcer.GetRolesForUser(username)
+
+	// Check permissions
+	var approved bool
+	for _, role := range myRoles {
+		result, err := h.permEnforcer.EnforceSafe(role, certRequest.RemoteUser, certRequest.UserIP, certRequest.RemoteHost, "permit-pty", username)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				map[string]string{"result": "fail", "message": "Error using enforcer to authorize certificate", "details": err.Error()})
+		}
+		if result {
+			approved = true
+		}
+	}
+	if !approved {
+		return c.JSON(http.StatusForbidden,
+			map[string]string{"result": "fail", "message": "You don't have permission to request this certificate", "details": fmt.Sprintf("Your roles are: %v", myRoles)})
 	}
 
 	// Initializing vault
