@@ -42,7 +42,7 @@ func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	myRoles := h.permEnforcer.GetRolesForUser(username)
 	allRoles := h.permEnforcer.GetPolicy()
 
-	var forMeRoles []types.Role
+	forMeRoles := []types.Role{}
 	for _, role := range allRoles {
 		for _, myRole := range myRoles {
 			if role[0] == myRole {
@@ -82,7 +82,7 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 	h.permEnforcer.LoadPolicy()
 	roles := h.permEnforcer.GetPolicy()
 
-	var completedRoles []types.Role
+	completedRoles := []types.Role{}
 	for _, role := range roles {
 		completedRoles = append(completedRoles, types.Role{
 			ID:         role[0],
@@ -292,7 +292,7 @@ func (h AppHandler) GetRolesByUser(c echo.Context) error {
 	myRoles := h.permEnforcer.GetRolesForUser(user)
 	allRoles := h.permEnforcer.GetPolicy()
 
-	var forUserRoles []types.Role
+	forUserRoles := []types.Role{}
 	for _, role := range allRoles {
 		for _, myRole := range myRoles {
 			if role[0] == myRole {
