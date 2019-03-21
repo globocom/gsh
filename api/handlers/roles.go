@@ -8,6 +8,7 @@ import (
 
 	"github.com/globocom/gsh/types"
 
+	"github.com/gosimple/slug"
 	"github.com/labstack/echo"
 )
 
@@ -124,9 +125,28 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed creating new role", "details": err.Error()})
 	}
 	// Checks for role ID
-	if requestPolicy.ID == "" {
+	if requestPolicy.ID != "" {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Invalid ID", "details": err.Error()})
+	}
+
+	// Slugify requestPolicy.ID if necessary
+	if !slug.IsSlug(requestPolicy.ID) {
+		requestPolicy.ID = slug.Make(requestPolicy.ID)
+	}
+
+	// Checks if RoleID exists
+	h.permEnforcer.LoadPolicy()
+	roles := h.permEnforcer.GetFilteredPolicy(0, requestPolicy.ID)
+	var roleFound bool
+	for _, role := range roles {
+		if role[0] == requestPolicy.ID {
+			roleFound = true
+		}
+	}
+	if roleFound {
+		return c.JSON(http.StatusBadRequest,
+			map[string]string{"result": "fail", "message": "RoleID alread exists"})
 	}
 
 	// Validates if the IPs read are in a valid format

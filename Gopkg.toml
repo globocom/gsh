@@ -89,6 +89,10 @@
   name = "gopkg.in/square/go-jose.v2"
   version = "2.2.2"
 
+[[override]]
+  name = "github.com/Knetic/govaluate"
+  revision = "9aa49832a739dcd78a5542ff189fb82c3e423116"
+
 [prune]
   go-tests = true
   unused-packages = true
