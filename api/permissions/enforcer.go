@@ -2,7 +2,6 @@ package permissions
 
 import (
 	"errors"
-	"fmt"
 
 	gormadapter "github.com/Krlier/gorm-adapter"
 	"github.com/casbin/casbin"
@@ -15,12 +14,10 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	m := casbin.NewModel()
 
 	// Add user request definitions:
-	m.AddDef("r", "r", "id, remote_user, sourceip, targetip, actions")
-	m.AddDef("r", "r", "user, role")
+	m.AddDef("r", "r", "id, remoteuser, sourceip, targetip, actions, currentuser")
 
 	// Add policy definition
-	m.AddDef("p", "p", "id, remote_user, sourceip, targetip, actions")
-	m.AddDef("p", "p", "user, role")
+	m.AddDef("p", "p", "id, remoteuser, sourceip, targetip, actions")
 
 	// Add role definition
 	m.AddDef("g", "g", "_, _")
@@ -32,8 +29,16 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	m.AddDef("e", "e", "some(where (p.eft == allow))")
 
 	// Add matchers
-	m.AddDef("m", "m", "p.id == r.id && r.remote_user == p.remote_user && ipMatch(r.sourceip,p.sourceip) && ipMatch(r.targetip, p.targetip)")
-	m.AddDef("m", "m", "g(r.user, p.user) && r.role == p.role")
+	// Check more details at https://github.com/globocom/gsh/wiki/api-permissions
+	m.AddDef(
+		"m",
+		"m",
+		"(p.id == r.id) && "+
+			"(p.remoteuser == '*' || r.remoteuser == p.remoteuser || ( p.remoteuser == '.' && r.remoteuser == r.currentuser) == true ) && "+
+			"( ipMatch(r.sourceip, p.sourceip) ) && "+
+			"( ipMatch(r.targetip, p.targetip) ) && "+
+			"( p.actions == '*' || r.actions == p.actions )",
+	)
 
 	// Initiates a new enforcer
 	e, err := casbin.NewEnforcerSafe(m, a)
@@ -48,20 +53,6 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, errors.New("Could not load policies")
 	}
-
-	// AddPolicySafe(requestPolicy.ID, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
-	check, err := e.AddPolicySafe("admin", "*", "0.0.0.0/0", "0.0.0.0/0", "*")
-	if err != nil {
-		return nil, err
-	}
-	if err == nil && check == false {
-		fmt.Printf("Casbin admin policy alread exists\n")
-	}
-	check = e.AddRoleForUser(config.GetString("perm_admin"), "admin")
-	if !check {
-		fmt.Printf("GSH admin (%s) alread have admin policy\n", config.GetString("perm_admin"))
-	}
-	e.EnableLog(true)
 
 	return e, nil
 }
