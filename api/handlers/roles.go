@@ -153,12 +153,12 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	_, sorceIPNet, err := net.ParseCIDR(requestPolicy.SourceIP)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid SourceIP format", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Invalid UserIP format", "details": err.Error()})
 	}
 	_, targetIPNet, err := net.ParseCIDR(requestPolicy.TargetIP)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid TargetIP format", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Invalid RemoteHost format", "details": err.Error()})
 	}
 	requestPolicy.SourceIP = sorceIPNet.String()
 	requestPolicy.TargetIP = targetIPNet.String()
