@@ -125,7 +125,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed creating new role", "details": err.Error()})
 	}
 	// Checks for role ID
-	if requestPolicy.ID != "" {
+	if requestPolicy.ID == "" {
 		return c.JSON(http.StatusBadRequest,
 			map[string]string{"result": "fail", "message": "Invalid ID", "details": err.Error()})
 	}
