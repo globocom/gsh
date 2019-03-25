@@ -47,12 +47,13 @@ import (
 
 // roleListCmd represents the roleList command
 var roleListCmd = &cobra.Command{
-	Use:   "role-list",
+	Use:   "role-list [user]",
 	Short: "List all rules",
 	Long: `
 
-List all roles at GSH API.
+List all roles at GSH API. If user is informed, this command list roles of informed user.
 	`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
@@ -79,7 +80,12 @@ List all roles at GSH API.
 		}
 
 		// Make GSH request
-		req, err := http.NewRequest("GET", currentTarget.Endpoint+"/authz/roles", nil)
+		var req *http.Request
+		if len(args) == 1 {
+			req, err = http.NewRequest("GET", currentTarget.Endpoint+"/authz/user/"+args[0], nil)
+		} else {
+			req, err = http.NewRequest("GET", currentTarget.Endpoint+"/authz/roles", nil)
+		}
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)
