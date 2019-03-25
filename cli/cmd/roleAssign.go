@@ -48,7 +48,7 @@ import (
 // roleAssignCmd represents the roleAssign command
 var roleAssignCmd = &cobra.Command{
 	Use:   "role-assign [role] [user]",
-	Short: "Associate a role to an user. ",
+	Short: "Associate a role to an user",
 	Long: `
 
 Assign a previous created role to an user.
