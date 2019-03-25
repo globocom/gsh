@@ -101,7 +101,11 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Get user roles
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	myRoles := h.permEnforcer.GetRolesForUser(username)
 
 	// Check permissions

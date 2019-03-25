@@ -39,7 +39,11 @@ func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	}
 
 	// permissions := h.permEnforcer.GetPolicy()
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	myRoles := h.permEnforcer.GetRolesForUser(username)
 	allRoles := h.permEnforcer.GetPolicy()
 
@@ -80,7 +84,11 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "This user can't list roles"})
 	}
 
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	roles := h.permEnforcer.GetPolicy()
 
 	completedRoles := []types.Role{}
@@ -136,7 +144,11 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	}
 
 	// Checks if RoleID exists
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	roles := h.permEnforcer.GetFilteredPolicy(0, requestPolicy.ID)
 	var roleFound bool
 	for _, role := range roles {
@@ -164,7 +176,11 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	requestPolicy.TargetIP = targetIPNet.String()
 
 	// Adds role if not existent
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	check, err := h.permEnforcer.AddPolicySafe(requestPolicy.ID, requestPolicy.RemoteUser, requestPolicy.SourceIP, requestPolicy.TargetIP, requestPolicy.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
@@ -202,7 +218,11 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 	removeRoleID := c.Param("role")
 
 	// Checks if role exists
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	roles := h.permEnforcer.GetFilteredPolicy(0, removeRoleID)
 	var roleFound bool
 	var removeRole types.Role
@@ -263,7 +283,11 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 	user := c.Param("user")
 
 	// Checks if role exists
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	roles := h.permEnforcer.GetFilteredPolicy(0, roleID)
 	var roleFound bool
 	for _, role := range roles {
@@ -308,7 +332,11 @@ func (h AppHandler) GetRolesByUser(c echo.Context) error {
 	user := c.Param("user")
 
 	// permissions := h.permEnforcer.GetPolicy()
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	myRoles := h.permEnforcer.GetRolesForUser(user)
 	allRoles := h.permEnforcer.GetPolicy()
 
@@ -355,7 +383,11 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 	user := c.Param("user")
 
 	// Checks if role exists
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	roles := h.permEnforcer.GetFilteredPolicy(0, roleID)
 	var roleFound bool
 	for _, role := range roles {
@@ -400,7 +432,11 @@ func (h AppHandler) GetUsersWithRole(c echo.Context) error {
 	role := c.Param("role")
 
 	// permissions := h.permEnforcer.GetPolicy()
-	h.permEnforcer.LoadPolicy()
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
 	users := h.permEnforcer.GetUsersForRole(role)
 	roles := h.permEnforcer.GetPolicy()
 
