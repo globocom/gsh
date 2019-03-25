@@ -63,6 +63,7 @@ func main() {
 
 	e.GET("/authz/roles/me", appHandler.GetRolesForMe)
 	e.GET("/authz/roles", appHandler.GetRoles)
+	e.GET("/authz/roles/:role", appHandler.GetUsersWithRole)
 	e.POST("/authz/roles", appHandler.AddRoles)
 	e.DELETE("/authz/roles/:role", appHandler.RemoveRole)
 	e.GET("/authz/user/:user", appHandler.GetRolesByUser)

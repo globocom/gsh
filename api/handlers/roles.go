@@ -377,3 +377,52 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role disassociated"})
 }
+
+// GetUsersWithRole prints all associated users to specific role
+func (h AppHandler) GetUsersWithRole(c echo.Context) error {
+	// Validates JWT token before any other action
+	token, err := ValidateJWT(c, h.config)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized,
+			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+	field := h.config.GetString("oidc_claim")
+	username, err := getField(&token, field)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
+	}
+	if username != h.config.GetString("perm_admin") {
+		return c.JSON(http.StatusForbidden,
+			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
+	}
+
+	role := c.Param("role")
+
+	// permissions := h.permEnforcer.GetPolicy()
+	h.permEnforcer.LoadPolicy()
+	users := h.permEnforcer.GetUsersForRole(role)
+	roles := h.permEnforcer.GetPolicy()
+
+	found := false
+	finishRole := types.Role{}
+	for _, currentRole := range roles {
+		if currentRole[0] == role {
+			finishRole = types.Role{
+				ID:         currentRole[0],
+				RemoteUser: currentRole[1],
+				SourceIP:   currentRole[2],
+				TargetIP:   currentRole[3],
+				Actions:    currentRole[4],
+			}
+			found = true
+		}
+	}
+
+	if !found {
+		return c.JSON(http.StatusNotFound,
+			map[string]string{"result": "fail", "message": "Role not found"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{"result": "success", "users": users, "role": finishRole})
+}
