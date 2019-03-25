@@ -185,8 +185,11 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 			os.Exit(1)
 		}
 
-		fmt.Printf("Result: %s\nMessage: %s (%s)\n\n", roleResponse.Result, roleResponse.Message, roleResponse.Details)
-
+		if roleResponse.Result == "fail" {
+			fmt.Printf("Client error calling GSH API: (%v)\n", roleResponse)
+			os.Exit(1)
+		}
+		fmt.Println(roleResponse.Message)
 	},
 }
 
