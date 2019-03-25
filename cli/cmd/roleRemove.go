@@ -48,7 +48,7 @@ import (
 // roleRemoveCmd represents the roleRemove command
 var roleRemoveCmd = &cobra.Command{
 	Use:   "role-remove [id]",
-	Short: "Remove a role by id.",
+	Short: "Remove a role by id",
 	Long: `
 
 	Remove a role by id at GSH API.
