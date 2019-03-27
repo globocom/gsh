@@ -25,6 +25,7 @@ func Init() viper.Viper {
 	if err != nil {              // Handle errors reading the config file
 		fmt.Println("Config file not set, using .env variables")
 	}
+	config.SetDefault("storage_driver", "mysql")
 	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
