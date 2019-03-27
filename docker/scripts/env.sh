@@ -24,6 +24,8 @@ GSH_STORAGE_MAX_ATTEMPTS=5
 GSH_STORAGE_MAX_CONNECTIONS=20
 GSH_STORAGE_DEBUG=1
 GSH_STORAGE_URI="$MYSQL_USER:$MYSQL_PASSWORD@tcp(gsh_db:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true"
+GSH_CASBIN_URI="$MYSQL_USER:$MYSQL_PASSWORD@tcp(gsh_db:3306)/casbin?charset=utf8&parseTime=True&multiStatements=true"
+GSH_PERM_ADMIN=admin@example.com
 
 GSH_CA_EXTERNAL=0
 GSH_CA_ENDPOINT="https://example.com"
@@ -37,7 +39,7 @@ GSH_OIDC_BASE_URL=http://gsh_keycloak:8080/auth/realms
 GSH_OIDC_REALM=gsh
 GSH_OIDC_AUDIENCE=gsh
 GSH_OIDC_AUTHORIZED_PARTY=gsh
-GSH_OIDC_CLAIM=preferred_username
+GSH_OIDC_CLAIM=PreferredUsername
 
 echo "Keycloak admin username: $KEYCLOAK_USER"
 echo "Keycloak admin password: $KEYCLOAK_PASSWORD"
@@ -64,6 +66,8 @@ echo "GSH_STORAGE_MAX_ATTEMPTS=$GSH_STORAGE_MAX_ATTEMPTS" >> .env
 echo "GSH_STORAGE_MAX_CONNECTIONS=$GSH_STORAGE_MAX_CONNECTIONS" >> .env
 echo "GSH_STORAGE_DEBUG=$GSH_STORAGE_DEBUG" >> .env
 echo "GSH_STORAGE_URI=$GSH_STORAGE_URI" >> .env
+echo "GSH_CASBIN_URI=$GSH_CASBIN_URI" >> .env
+echo "GSH_PERM_ADMIN=$GSH_PERM_ADMIN" >> .env
 
 echo "GSH_CA_EXTERNAL=$GSH_CA_EXTERNAL" >> .env
 echo "GSH_CA_ENDPOINT=\"$GSH_CA_ENDPOINT\"" >> .env

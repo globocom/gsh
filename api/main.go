@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/globocom/gsh/api/config"
+	"github.com/globocom/gsh/api/permissions"
 	"github.com/globocom/gsh/api/storage"
 	"github.com/globocom/gsh/types"
 
@@ -29,6 +30,12 @@ func main() {
 	}
 	defer db.Close()
 
+	// Configuring Casbin
+	permEnforcer, err := permissions.Init(configuration)
+	if err != nil {
+		panic(err)
+	}
+
 	// Configuring channels
 	var defaultChannelSize, _ = strconv.Atoi(os.Getenv("channel_size"))
 	var auditChannel = make(chan types.AuditRecord, defaultChannelSize)
@@ -41,7 +48,7 @@ func main() {
 	e := echo.New()
 
 	// Creating handler with pointers to persistent data
-	appHandler := handlers.NewAppHandler(configuration, auditChannel, logChannel, db)
+	appHandler := handlers.NewAppHandler(configuration, auditChannel, logChannel, db, permEnforcer)
 
 	// Middlewares
 	e.Use(middleware.Logger())
@@ -52,8 +59,16 @@ func main() {
 	e.GET("/status/config", appHandler.StatusConfig)
 	e.GET("/publickey", appHandler.PublicKey)
 	e.GET("/certificates/*", appHandler.CertInfo)
-
 	e.POST("/certificates", appHandler.CertCreate)
+
+	e.GET("/authz/roles/me", appHandler.GetRolesForMe)
+	e.GET("/authz/roles", appHandler.GetRoles)
+	e.GET("/authz/roles/:role", appHandler.GetUsersWithRole)
+	e.POST("/authz/roles", appHandler.AddRoles)
+	e.DELETE("/authz/roles/:role", appHandler.RemoveRole)
+	e.GET("/authz/user/:user", appHandler.GetRolesByUser)
+	e.POST("/authz/roles/:role/:user", appHandler.AssociateRoleToUser)
+	e.DELETE("/authz/roles/:role/:user", appHandler.DisassociateRoleToUser)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

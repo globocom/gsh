@@ -10,12 +10,46 @@
   revision = "82da6802f65f1ac7963cfc3b7c62ae12dab8ee5d"
 
 [[projects]]
+  digest = "1:dc648facc1e7aac5086f749c84c9b9263345c08161fadd9cf92ae3309c9fcaa6"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9aa49832a739dcd78a5542ff189fb82c3e423116"
+
+[[projects]]
+  branch = "master"
+  digest = "1:e31806ff98be45276d8cb3728d9a04613fb2522a4082f079fec927ce0aa9d30f"
+  name = "github.com/Krlier/gorm-adapter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
+
+[[projects]]
   branch = "master"
   digest = "1:d73d422b7f34d8e930d6d9c3ae6ce5c8f4a2c77e1ea43f7f127a5cd084e32ccb"
   name = "github.com/aulanov/go.dbus"
   packages = ["."]
   pruneopts = "UT"
   revision = "25c3068a42a0b50b877953fb249dbcffc6bd1bca"
+
+[[projects]]
+  digest = "1:c9a6803b8b14295b9ec5bf145bba2de6741509717687df47442282a71834c493"
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "effect",
+    "log",
+    "model",
+    "persist",
+    "persist/file-adapter",
+    "rbac",
+    "rbac/default-role-manager",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "4aa316fb68d44d4cc5ddd98d7e9ec80bc0a8b081"
+  version = "v1.8.1"
 
 [[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
@@ -118,6 +152,14 @@
   pruneopts = "UT"
   revision = "f57b7e2d29c6211d16ffa52a0998272f75799030"
   version = "v1.1.3"
+
+[[projects]]
+  digest = "1:e1aa8e520787bfd8623c7df394352be3183ef207039cfb513ba40dc00c82fa6d"
+  name = "github.com/gosimple/slug"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "42ac18c34c2c6f4843fa48167317dcaa9416d1e2"
+  version = "v1.4.2"
 
 [[projects]]
   branch = "master"
@@ -230,6 +272,17 @@
   version = "v0.2.8"
 
 [[projects]]
+  digest = "1:8ef506fc2bb9ced9b151dafa592d4046063d744c646c1bbe801982ce87e4bc24"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+  ]
+  pruneopts = "UT"
+  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
   name = "github.com/magiconair/properties"
   packages = ["."]
@@ -297,6 +350,14 @@
   revision = "1555304b9b35fdd2b425bccf1a5613677705e7d0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e6a29574542c00bb18adb1bfbe629ff88c468c2af2e2e953d3e58eda07165086"
+  name = "github.com/rainycape/unidecode"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cb7f23ec59bec0d61b19c56cd88cee3d0cc1870c"
+
+[[projects]]
   digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -354,6 +415,14 @@
   pruneopts = "UT"
   revision = "6d33b5a963d922d182c91e8a1c88d81fd150cfd4"
   version = "v1.3.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5df1ebf3ad9acba22bdb8beeb40e1f1a600830a12e6fd06a149df6eaa322d0d4"
+  name = "github.com/tsuru/tablecli"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7ded8a3383c62d73e5c7f904377049d2c9fcd619"
 
 [[projects]]
   digest = "1:c468422f334a6b46a19448ad59aaffdfc0a36b08fdcc1c749a0b29b6453d7e59"
@@ -481,9 +550,12 @@
   analyzer-version = 1
   input-imports = [
     "github.com/99designs/keyring",
+    "github.com/Krlier/gorm-adapter",
+    "github.com/casbin/casbin",
     "github.com/coreos/go-oidc",
     "github.com/gofrs/uuid",
     "github.com/gorilla/sessions",
+    "github.com/gosimple/slug",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/mysql",
     "github.com/kr/pty",
@@ -496,6 +568,7 @@
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
+    "github.com/tsuru/tablecli",
     "golang.org/x/crypto/ssh",
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/oauth2",

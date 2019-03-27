@@ -38,27 +38,31 @@ type certConfig struct {
 // }
 //
 // - Output sample
-// ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3BlbnNzaC5jb20AAAAgvz
-// 4Hjd5bR2H2ryXBjyTuGt+Uerg80LriH48MtyOyBIgAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiI
-// yBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfn
-// y4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4S
-// gDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p306
-// 1Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcK
-// XLlAAAAAAAAAAAAAAABAAAAtXVzZXJbXSBmcm9tWzE5Mi4xNjguMi41XSBjb21tYW5kW10gc3NoS2V5
-// WzgwOjI5OmY3OmZjOjFkOjFhOjdmOjRiOmM4OjJhOjJhOmUwOjA4OmU2OmQzOjMyXSBjYVtTSEEyNTY
-// 6OU5zLzdHamwxVVFReXBodElLREdZZCtPeUJkVjVrWnNRK3lmaVhzdDg0Y10gdmFsaWQgdG9bMjAxOC
-// 0xMi0wOVQyMTowNjozNS0wMjowMF0AAAAHAAAAA2ppbQAAAABcDZ2FAAAAAFwNn/sAAAAlAAAADnNvd
-// XJjZS1hZGRyZXNzAAAADwAAAAsxOTIuMTY4LjIuNQAAABIAAAAKcGVybWl0LXB0eQAAAAAAAAAAAAAB
-// FQAAAAdzc2gtcnNhAAAAASMAAAEBAPj/vg/zXKNBy+GjtW0dZfZ2LQUeCA5FhOiQPaCpKpLO7YMAA63
-// Lb3KbGdDOAnTFS3K69dwA+oItlSO7aEkIfo7YNxCNb6tMIwoa6y3E1hdQI2N+lAhcg2lSQtbeKzpds7
-// vvQ/j5UuSVWvRxBJZOCkXEHRaA7y8e2jWVHQg9kcDeTFCvcIj7AEkBPTUXQFJd/RxDWmiYPSdQ9FTq3
-// 9y11jKk9YXsG2fjiZo1uenoWCBJi2DJ9gkE53ednJzGAKa7y2+KMHwbPhcuTm19YvtH31M9iF2JtkZx
-// 5qXXeWlJ7HgkcY60j2bUfqBIlZH/dor4t6BHcBOAHbm32C4Xe4jSRVMAAAEPAAAAB3NzaC1yc2EAAAE
-// Ap/sdFMyeo6Jbdu4R33pZiSuTBGyBash4SlK4PoVEiuWnN2UHVH6DAi84qzG+Qhho48YJYarDDxxbOx
-// cDinQ2j15XU0V/vVeucS12UF06HG9r+J51u0KMA/3dN4WNG6GKDrzY5M5Uad7lWnDNtbjRnhPVPCxHg
-// V5YQLO6k94+kaPZbR+bVWb5tAOMoC1XHBwwDNLDqUKs2C8lvEpJY0Mf7ag9SNSep0Q5isq97zY3CWwP
-// CtpYTN9tkQpfn+Noe4H7yOP2mkpAs3i7j/u0+Zz6SHejy4A7HlGHfJvWrOyg8J0ZzBSl5ho5eAw4Lrt
-// +xcTVkFgWWPcml7CFiGwFhbui4w==
+// {
+// 	"result": "success",
+// 	"certificate": "ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3
+// BlbnNzaC5jb20AAAAgvz4Hjd5bR2H2ryXBjyTuGt+Uerg80LriH48MtyOyBIgAAAADAQABAAABAQ
+// C1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeX
+// QXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhq
+// qvH8wIrjc85WuEpmqK7FcMZblcS4SgDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHM
+// z7LHt360EwKu9yslV7J0Jj631tG3p3061Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMl
+// lBcRH8oXksDw5YufB84CRIr0znO/+8SIgcKXLlAAAAAAAAAAAAAAABAAAAtXVzZXJbXSBmcm9tWz
+// E5Mi4xNjguMi41XSBjb21tYW5kW10gc3NoS2V5WzgwOjI5OmY3OmZjOjFkOjFhOjdmOjRiOmM4Oj
+// JhOjJhOmUwOjA4OmU2OmQzOjMyXSBjYVtTSEEyNTY6OU5zLzdHamwxVVFReXBodElLREdZZCtPeU
+// JkVjVrWnNRK3lmaVhzdDg0Y10gdmFsaWQgdG9bMjAxOC0xMi0wOVQyMTowNjozNS0wMjowMF0AAA
+// AHAAAAA2ppbQAAAABcDZ2FAAAAAFwNn/sAAAAlAAAADnNvdXJjZS1hZGRyZXNzAAAADwAAAAsxOT
+// IuMTY4LjIuNQAAABIAAAAKcGVybWl0LXB0eQAAAAAAAAAAAAABFQAAAAdzc2gtcnNhAAAAASMAAA
+// EBAPj/vg/zXKNBy+GjtW0dZfZ2LQUeCA5FhOiQPaCpKpLO7YMAA63Lb3KbGdDOAnTFS3K69dwA+o
+// ItlSO7aEkIfo7YNxCNb6tMIwoa6y3E1hdQI2N+lAhcg2lSQtbeKzpds7vvQ/j5UuSVWvRxBJZOCk
+// XEHRaA7y8e2jWVHQg9kcDeTFCvcIj7AEkBPTUXQFJd/RxDWmiYPSdQ9FTq39y11jKk9YXsG2fjiZ
+// o1uenoWCBJi2DJ9gkE53ednJzGAKa7y2+KMHwbPhcuTm19YvtH31M9iF2JtkZx5qXXeWlJ7HgkcY
+// 60j2bUfqBIlZH/dor4t6BHcBOAHbm32C4Xe4jSRVMAAAEPAAAAB3NzaC1yc2EAAAEAp/sdFMyeo6
+// Jbdu4R33pZiSuTBGyBash4SlK4PoVEiuWnN2UHVH6DAi84qzG+Qhho48YJYarDDxxbOxcDinQ2j1
+// 5XU0V/vVeucS12UF06HG9r+J51u0KMA/3dN4WNG6GKDrzY5M5Uad7lWnDNtbjRnhPVPCxHgV5YQL
+// O6k94+kaPZbR+bVWb5tAOMoC1XHBwwDNLDqUKs2C8lvEpJY0Mf7ag9SNSep0Q5isq97zY3CWwPCt
+// pYTN9tkQpfn+Noe4H7yOP2mkpAs3i7j/u0+Zz6SHejy4A7HlGHfJvWrOyg8J0ZzBSl5ho5eAw4Lr
+// t+xcTVkFgWWPcml7CFiGwFhbui4w==
+// }
 //
 func (h AppHandler) CertCreate(c echo.Context) error {
 	initTime := time.Now()
@@ -84,21 +88,41 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Validating JWT before any other action
-	var err error
-	authorizationHeader := c.Request().Header.Get("Authorization")
-	if len(authorizationHeader) == 0 {
-		return c.JSON(http.StatusUnauthorized,
-			map[string]string{"result": "fail", "message": "Authorization header not provided", "details": "Expecting Authorization: JWT id_token"})
-	}
-	jwt := strings.Split(authorizationHeader, "JWT")
-	if len(jwt) != 2 {
-		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Authorization header malformed", "details": "Expecting Authorization: JWT id_token"})
-	}
-	err = ValidateJWT(jwt[1], h.config)
+	token, err := ValidateJWT(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+	}
+	field := h.config.GetString("oidc_claim")
+	username, err := getField(&token, field)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
+	}
+
+	// Get user roles
+	err = h.permEnforcer.LoadPolicy()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError,
+			map[string]string{"result": "fail", "message": "Error reading roles", "details": err.Error()})
+	}
+	myRoles := h.permEnforcer.GetRolesForUser(username)
+
+	// Check permissions
+	var approved bool
+	for _, role := range myRoles {
+		result, err := h.permEnforcer.EnforceSafe(role, certRequest.RemoteUser, certRequest.UserIP, certRequest.RemoteHost, "permit-pty", username)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError,
+				map[string]string{"result": "fail", "message": "Error using enforcer to authorize certificate", "details": err.Error()})
+		}
+		if result {
+			approved = true
+		}
+	}
+	if !approved {
+		return c.JSON(http.StatusForbidden,
+			map[string]string{"result": "fail", "message": "You don't have permission to request this certificate", "details": fmt.Sprintf("Your roles are: %v", myRoles)})
 	}
 
 	// Initializing vault
@@ -283,5 +307,5 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 	//sshd only gives 15 characters for serial number
 	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").First(&certRequest)
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "succes", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }
