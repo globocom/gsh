@@ -31,7 +31,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -47,14 +46,13 @@ import (
 	"os/user"
 	"time"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/globocom/gsh/api/handlers"
 	"github.com/globocom/gsh/cli/cmd/auth"
 	"github.com/globocom/gsh/cli/cmd/config"
 	"github.com/globocom/gsh/cli/cmd/files"
 	"github.com/globocom/gsh/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/oauth2"
 )
 
 // hostConnectCmd represents the hostConnect command
@@ -153,30 +151,15 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 
-		// Get provider for username discovery
-		ctx := context.Background()
-		oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
-		if err != nil {
-			fmt.Printf("Client error getting OIDC Provider: (%s)\n", err.Error())
-			os.Exit(1)
-		}
 		// Get info about user
 		var username string
 		if !cmd.Flags().Changed("username") {
-			userInfo, err := oauth2provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+			username, err = handlers.GetClaim(oauth2Token.AccessToken, configResponse.UsernameClaim)
 			if err != nil {
-				fmt.Printf("Client error getting OIDC userinfo: (%s)\n", err.Error())
-				os.Exit(1)
-			}
-			claims := map[string]string{}
-			err = userInfo.Claims(&claims)
-			if err != nil {
-				fmt.Printf("Client error getting userinfo claims: (%s)\n", err.Error())
+				fmt.Printf("Client error getting username from token: (%s)\n", err.Error())
 				os.Exit(1)
 			}
 
-			// Set username
-			username = claims[configResponse.UsernameClaim]
 			if username == "" {
 				userLocal, err := user.Current()
 				if err != nil {
@@ -243,7 +226,7 @@ can access an host just giving DNS name, or specifying the IP of the host.
 			os.Exit(1)
 		}
 		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("Client error checking http status response: (%v)\n", resp.StatusCode)
+			fmt.Printf("Client error checking http status response: (%v)\n\n%s\n", resp.StatusCode, body)
 			os.Exit(1)
 		}
 		defer resp.Body.Close()
