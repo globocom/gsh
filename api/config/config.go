@@ -101,6 +101,12 @@ func Check(config viper.Viper) error {
 		fails++
 	}
 
+	// Check for admins
+	if len(config.GetStringSlice("perm_admin")) == 0 {
+		fmt.Println("Admin users (perm_admin) not configured")
+		fails++
+	}
+
 	if fails > 0 {
 		return errors.New("Incorrect configuration")
 	}
