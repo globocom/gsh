@@ -252,3 +252,22 @@ func (j *jsonTime) UnmarshalJSON(b []byte) error {
 	*j = jsonTime(time.Unix(unix, 0))
 	return nil
 }
+
+// GetClaim returns a claim from JWT
+func GetClaim(jwt string, claim string) (string, error) {
+	var err error
+	token := IDToken{}
+
+	// Parse JWT
+	token, err = parseIDToken(jwt)
+	if err != nil {
+		return "", fmt.Errorf("GetClaim: %v", err.Error())
+	}
+
+	field, err := getField(&token, claim)
+	if err != nil {
+		return "", fmt.Errorf("GetClaim: The field declared in oidc_claim doesn't exist (%v) [%s]", err.Error(), jwt)
+	}
+
+	return field, nil
+}
