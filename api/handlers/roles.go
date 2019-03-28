@@ -79,7 +79,7 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't list roles"})
 	}
@@ -121,7 +121,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't create roles"})
 	}
@@ -210,7 +210,7 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't delete roles"})
 	}
@@ -274,7 +274,7 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't associate role to an user"})
 	}
@@ -324,7 +324,7 @@ func (h AppHandler) GetRolesByUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
 	}
@@ -374,7 +374,7 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't disassociate role to an user"})
 	}
@@ -424,7 +424,7 @@ func (h AppHandler) GetUsersWithRole(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	if username != h.config.GetString("perm_admin") {
+	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
 	}
@@ -461,4 +461,14 @@ func (h AppHandler) GetUsersWithRole(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{"result": "success", "users": users, "role": finishRole})
+}
+
+// Contains tells whether a contains x.
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
