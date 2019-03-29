@@ -47,7 +47,7 @@ type DiscoveryResponse struct {
 	BaseURL       string `json:"oidc_base_url"`
 	Realm         string `json:"oidc_realm"`
 	Audience      string `json:"oidc_audience"`
-	UsernameClaim string `json:"oidc_username_claim"`
+	UsernameClaim string `json:"oidc_claim"`
 }
 
 // GetCurrentTarget return a types.Target with current target
