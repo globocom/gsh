@@ -51,6 +51,7 @@ Change current target (gsh api)
 
 		// check if target name is used
 		notUsed := true
+		endpoint := ""
 		targets := viper.GetStringMap("targets")
 		for k, v := range targets {
 			if k == args[0] {
@@ -58,6 +59,7 @@ Change current target (gsh api)
 				// set target as current
 				target := v.(map[string]interface{})
 				target["current"] = true
+				endpoint = target["endpoint"].(string)
 			} else {
 				// unset all others targets as not current
 				target := v.(map[string]interface{})
@@ -75,6 +77,7 @@ Change current target (gsh api)
 			fmt.Printf("Client error saving config with current target: (%s)\n", err.Error())
 			os.Exit(1)
 		}
+		fmt.Printf("New target is %s -> %s\n", args[0], endpoint)
 	},
 }
 
