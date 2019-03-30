@@ -42,10 +42,10 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gshc",
-	Short: "gshc is a CLI to use GSH",
+	Use:   "gsh",
+	Short: "gsh is a CLI to use GSH",
 	Long: `
-gshc is a CLI to use GSH.
+gsh is a CLI to use GSH.
 
 GSH is an OpenID Connect-compatible authentication system
 for OpenSSH servers. gshc uses certificate based authentication
@@ -92,13 +92,14 @@ func initConfig() {
 		}
 
 		// check if .gshc folder exists and creates if it not exists
-		path := home + "/.gshc"
+		path := home + "/.gsh"
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			err := os.Mkdir(path, 0750)
 			if err != nil {
 				fmt.Printf("Client error creating config folder: %s (%s)\n", path, err.Error())
 				os.Exit(1)
 			}
+			fmt.Printf("Client created config folder: %s\n", path)
 		}
 
 		// add path to viper config
@@ -117,14 +118,22 @@ func initConfig() {
 				fmt.Printf("Client error creating config file: %s (%s)\n", configFile, err.Error())
 				os.Exit(1)
 			}
-			defer f.Close()
+			err = f.Close()
+			if err != nil {
+				fmt.Printf("Client error closing config file: %s (%s)\n", configFile, err.Error())
+				os.Exit(1)
+			}
+			fmt.Printf("Client create new config file: %s\n", configFile)
 		}
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Printf("Using config file: %s\n\n", viper.ConfigFileUsed())
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Printf("Client error reading config file (%s)\n", err.Error())
+		os.Exit(1)
 	}
+	fmt.Printf("Using config file: %s\n\n", viper.ConfigFileUsed())
 }

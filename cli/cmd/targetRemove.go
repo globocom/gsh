@@ -62,7 +62,9 @@ var targetRemoveCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// remove entry from data struct
+		// remove entry from data struct but, before, storing data to show to user
+		target := targets[args[0]].(map[string]interface{})
+		endpoint := target["endpoint"].(string)
 		targets[args[0]] = nil
 
 		// save config
@@ -71,6 +73,7 @@ var targetRemoveCmd = &cobra.Command{
 			fmt.Printf("Client error saving config without target: (%s)\n", err.Error())
 			os.Exit(1)
 		}
+		fmt.Printf("Target %s -> %s removed from target list\n", args[0], endpoint)
 	},
 }
 
