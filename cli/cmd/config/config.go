@@ -81,8 +81,9 @@ func GetCurrentTarget() *types.Target {
 						fmt.Printf("Client error with token storage: token storage not available\n")
 						os.Exit(1)
 					}
+					target["token-storage"] = string(setStorage)
 				}
-				currentTarget.TokenStorage = string(setStorage)
+				currentTarget.TokenStorage = target["token-storage"].(string)
 			}
 		}
 	}
