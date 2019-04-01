@@ -38,6 +38,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/99designs/keyring"
 	"github.com/globocom/gsh/types"
 	"github.com/spf13/viper"
 )
@@ -69,7 +70,19 @@ func GetCurrentTarget() *types.Target {
 			if target["current"].(bool) {
 				currentTarget.Label = k
 				currentTarget.Endpoint = target["endpoint"].(string)
-				currentTarget.TokenStorage = target["token-storage"].(string)
+
+				// check token storage
+				var setStorage keyring.BackendType
+				if target["token-storage"] == nil {
+					tokenStorages := keyring.AvailableBackends()
+					if len(tokenStorages) > 0 {
+						setStorage = tokenStorages[0]
+					} else {
+						fmt.Printf("Client error with token storage: token storage not available\n")
+						os.Exit(1)
+					}
+				}
+				currentTarget.TokenStorage = string(setStorage)
 			}
 		}
 	}
