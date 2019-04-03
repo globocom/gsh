@@ -48,6 +48,7 @@ import (
 	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/oauth2"
 )
 
@@ -148,8 +149,23 @@ func StorageTokens(targetLabel string, token oauth2.Token) error {
 	storageConfig := viper.GetString("targets." + targetLabel + ".token-storage")
 	storage = append(storage, keyring.BackendType(storageConfig))
 	ring, err := keyring.Open(keyring.Config{
+		// Configuration for keychain
 		AllowedBackends: storage,
 		ServiceName:     "gsh",
+
+		// Configuration for encrypted file
+		FileDir:          "~/.gsh/" + targetLabel,
+		FilePasswordFunc: terminalPrompt,
+
+		// Configuration for KWallet
+		KWalletAppID:  "gsh",
+		KWalletFolder: targetLabel,
+
+		// Configuration for pass (https://www.passwordstore.org/)
+		PassDir: "~/.gsh/" + targetLabel,
+
+		// Configuration for Secret Service (https://secretstorage.readthedocs.io/en/latest/)
+		LibSecretCollectionName: "gsh",
 	})
 	if err != nil {
 		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
@@ -179,8 +195,23 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 	storageConfig := viper.GetString("targets." + currentTarget.Label + ".token-storage")
 	storage = append(storage, keyring.BackendType(storageConfig))
 	ring, err := keyring.Open(keyring.Config{
+		// Configuration for keychain
 		AllowedBackends: storage,
 		ServiceName:     "gsh",
+
+		// Configuration for encrypted file
+		FileDir:          "~/.gsh/" + currentTarget.Label,
+		FilePasswordFunc: terminalPrompt,
+
+		// Configuration for KWallet
+		KWalletAppID:  "gsh",
+		KWalletFolder: currentTarget.Label,
+
+		// Configuration for pass (https://www.passwordstore.org/)
+		PassDir: "~/.gsh/" + currentTarget.Label,
+
+		// Configuration for Secret Service (https://secretstorage.readthedocs.io/en/latest/)
+		LibSecretCollectionName: "gsh",
 	})
 	if err != nil {
 		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
@@ -257,4 +288,15 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 	}
 
 	return tokenRefreshed, nil
+}
+
+// terminalPrompt prints to user insert a password for an encrypted file
+func terminalPrompt(prompt string) (string, error) {
+	fmt.Printf("%s: ", prompt)
+	b, err := terminal.ReadPassword(1)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println()
+	return string(b), nil
 }
