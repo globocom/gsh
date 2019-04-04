@@ -61,8 +61,8 @@ var loginCmd = &cobra.Command{
 Initiates a new gsh session for a user. How authentication uses OpenID
 Connect, it will open a web browser for the user to complete the login.
 
-All gshc actions require the user to be authenticated (except [[gshc login]],
- [[gshc version]] and [[gshc target-*]]).
+All gsh actions require the user to be authenticated (except [[gsh login]],
+ [[gsh version]] and [[gsh target-*]]).
 	
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -77,15 +77,10 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 			// user not set the flag, read from config file
 			setStorageCheck := viper.Get("targets." + currentTarget.Label + ".token-storage")
 
-			// config file not set
+			// config file not set or first time using this target, forcing user to set one
 			if setStorageCheck == nil {
-				// Get default if config file not set
-				var err error
-				setStorageCheck, err = cmd.Flags().GetString("set-token-storage")
-				if err != nil {
-					fmt.Printf("Client error parsing set-token-storage option: (%s)\n", err.Error())
-					os.Exit(1)
-				}
+				fmt.Printf("Client error: available backends for token-storage %v\n", keyring.AvailableBackends())
+				os.Exit(1)
 			}
 			setStorage = setStorageCheck.(string)
 		} else {
@@ -95,16 +90,17 @@ All gshc actions require the user to be authenticated (except [[gshc login]],
 				fmt.Printf("Client error parsing set-token-storage option: (%s)\n", err.Error())
 				os.Exit(1)
 			}
-		}
-		var match bool
-		for _, v := range keyring.AvailableBackends() {
-			if string(v) == setStorage {
-				match = true
+			// Check if token-storage is available
+			var match bool
+			for _, keyringAvailable := range keyring.AvailableBackends() {
+				if string(keyringAvailable) == setStorage {
+					match = true
+				}
 			}
-		}
-		if match == false {
-			fmt.Printf("Client error with unsuported credentials storage backend: Only avaliables(%v)\n", keyring.AvailableBackends())
-			os.Exit(1)
+			if match == false {
+				fmt.Printf("Client error validating set-token-storage option (%s), only available: (%v)\n", setStorage, keyring.AvailableBackends())
+				os.Exit(1)
+			}
 		}
 
 		// Storing tokens on current target (config file)

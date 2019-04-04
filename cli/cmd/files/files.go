@@ -48,8 +48,8 @@ func GetConfigPath() (string, error) {
 		return "", errors.New("File error finding homedir (" + err.Error() + ")")
 	}
 
-	// check if .gshc folder exists and creates if it not exists
-	path := home + "/.gshc"
+	// check if .gsh folder exists and creates if it not exists
+	path := home + "/.gsh"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)
 		if err != nil {

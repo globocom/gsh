@@ -48,7 +48,7 @@ var rootCmd = &cobra.Command{
 gsh is a CLI to use GSH.
 
 GSH is an OpenID Connect-compatible authentication system
-for OpenSSH servers. gshc uses certificate based authentication
+for OpenSSH servers. gsh uses certificate based authentication
 on OpenSSH remote systems.`,
 
 	// Uncomment the following line if your bare application
@@ -71,7 +71,7 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gshc/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gsh/config.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directlßy.
@@ -91,7 +91,7 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		// check if .gshc folder exists and creates if it not exists
+		// check if .gsh folder exists and creates if it not exists
 		path := home + "/.gsh"
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			err := os.Mkdir(path, 0750)
