@@ -32,7 +32,10 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 	sess, _ := session.Get("gsh", c)
 
 	// verify state
-	stateCookie := sess.Values["state"].(string)
+	stateCookie, ok := sess.Values["state"].(string)
+	if ok == false {
+		return c.String(http.StatusInternalServerError, "Invalid state at cookie")
+	}
 	stateOauth2 := c.QueryParam("state")
 	if stateCookie != stateOauth2 {
 		return c.String(http.StatusInternalServerError, "Invalid state")
@@ -40,7 +43,7 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 
 	oauth2Token, err := h.oauth2config.Exchange(c.Request().Context(), c.Request().URL.Query().Get("code"))
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Error converting an authorization code into a token")
+		return c.String(http.StatusInternalServerError, "Error converting an authorization code into a token ("+err.Error()+")")
 	}
 
 	// Extract the ID Token from OAuth2 token.
