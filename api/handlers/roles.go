@@ -81,7 +81,10 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 	}
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't list roles"})
+			map[string]string{
+				"result":  "fail",
+				"message": fmt.Sprintf("This user can't list roles, contact %v", h.config.GetStringSlice("perm_admin")),
+			})
 	}
 
 	err = h.permEnforcer.LoadPolicy()
