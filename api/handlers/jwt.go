@@ -158,7 +158,7 @@ func verifyAudience(token IDToken, audience string) error {
 		}
 	}
 	if !fail {
-		return errors.New("verifyAudience: Id Token issued to other audience")
+		return fmt.Errorf("verifyAudience: Id Token issued to other audience (%v)", token.Audience)
 	}
 	return nil
 }
@@ -169,14 +169,14 @@ func verifyAuthorizedParty(token IDToken, azp string) error {
 		return nil
 	}
 	if token.AuthorizedParty != azp {
-		return fmt.Errorf("verifyAuthorizedParty: IDToken issued to another authorized party (%s)", azp)
+		return fmt.Errorf("verifyAuthorizedParty: IDToken issued to another authorized party (%s)", token.AuthorizedParty)
 	}
 	return nil
 }
 
 func verifyIssuer(token IDToken, issuer string) error {
 	if token.Issuer != issuer {
-		return fmt.Errorf("Id Token issuer not recognized")
+		return fmt.Errorf("Id Token issuer not recognized (%s)", token.Issuer)
 	}
 	return nil
 }
