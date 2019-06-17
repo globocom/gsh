@@ -38,7 +38,7 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 	}
 	stateOauth2 := c.QueryParam("state")
 	if stateCookie != stateOauth2 {
-		return c.String(http.StatusInternalServerError, "Invalid state")
+		return c.String(http.StatusInternalServerError, "Invalid state, try re-authenticating")
 	}
 
 	oauth2Token, err := h.oauth2config.Exchange(c.Request().Context(), c.Request().URL.Query().Get("code"))
