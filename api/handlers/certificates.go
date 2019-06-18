@@ -97,6 +97,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
+	jti, _ := getField(&token, "JTI")
 
 	// Get user roles
 	err = h.permEnforcer.LoadPolicy()
@@ -119,6 +120,19 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		}
 	}
 	if !approved {
+		finishTime := time.Now()
+		go func() {
+			h.auditChannel <- types.AuditRecord{
+				UID:       uuid.Must(uuid.NewV4()),
+				StartTime: initTime,
+				EndTime:   finishTime,
+				Kind:      "cert.create",
+				Owner:     username,
+				JTI:       jti,
+				Error:     "You don't have permission to request this certificate",
+				Log:       fmt.Sprintf("Your roles are: %v", myRoles),
+			}
+		}()
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "You don't have permission to request this certificate", "details": fmt.Sprintf("Your roles are: %v", myRoles)})
 	}
@@ -245,6 +259,8 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			Kind:      "cert.create",
 			TargetUID: certRequest.UID,
 			TargetID:  certRequest.ID,
+			Owner:     username,
+			JTI:       jti,
 		}
 	}()
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "certificate": signedKey})
