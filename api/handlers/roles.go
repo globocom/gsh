@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/globocom/gsh/types"
 
@@ -83,7 +84,7 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{
 				"result":  "fail",
-				"message": fmt.Sprintf("This user can't list roles, contact %v", h.config.GetStringSlice("perm_admin")),
+				"message": fmt.Sprintf("This user (%s) can't list roles, contact %v", username, h.config.GetStringSlice("perm_admin")),
 			})
 	}
 
@@ -165,18 +166,26 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	}
 
 	// Validates if the IPs read are in a valid format
-	_, sorceIPNet, err := net.ParseCIDR(requestPolicy.SourceIP)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid UserIP format", "details": err.Error()})
+	sourceIPs := []string{}
+	for _, sourceEntryIP := range strings.Split(requestPolicy.SourceIP, ";") {
+		_, sorceIPNet, err := net.ParseCIDR(sourceEntryIP)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest,
+				map[string]string{"result": "fail", "message": "Invalid UserIP format", "details": err.Error()})
+		}
+		sourceIPs = append(sourceIPs, sorceIPNet.String())
 	}
-	_, targetIPNet, err := net.ParseCIDR(requestPolicy.TargetIP)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "Invalid RemoteHost format", "details": err.Error()})
+	targetIPs := []string{}
+	for _, targetEntryIP := range strings.Split(requestPolicy.TargetIP, ";") {
+		_, targetIPNet, err := net.ParseCIDR(targetEntryIP)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest,
+				map[string]string{"result": "fail", "message": "Invalid RemoteHost format", "details": err.Error()})
+		}
+		targetIPs = append(targetIPs, targetIPNet.String())
 	}
-	requestPolicy.SourceIP = sorceIPNet.String()
-	requestPolicy.TargetIP = targetIPNet.String()
+	requestPolicy.SourceIP = strings.Join(sourceIPs, ";")
+	requestPolicy.TargetIP = strings.Join(targetIPs, ";")
 
 	// Adds role if not existent
 	err = h.permEnforcer.LoadPolicy()
