@@ -4,9 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/globocom/gsh/types"
@@ -290,22 +288,18 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 //
 // - Output sample
 // {
-// 	"result":"success",
+//	"result":"success",
 //	"remote_user": "username",
-//  "remote_host": "10.0.0.1"
+//	"remote_host": "10.0.0.1"
 // }
 func (h AppHandler) CertInfo(c echo.Context) error {
-	keyPath := c.Request().RequestURI
-	s := strings.SplitAfterN(keyPath, "/", 3)
-	serialNumber := s[2]
-	serialNumber, err := url.QueryUnescape(serialNumber)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Error unescaping url query", "details": err.Error()})
-	}
+
+	serialNumber := c.Param("serial")
+	keyID := c.QueryParam("key_id")
+
 	certRequest := new(types.CertRequest)
 	//sshd only gives 15 characters for serial number
-	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").First(&certRequest)
+	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{CertKeyID: keyID}).First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }
