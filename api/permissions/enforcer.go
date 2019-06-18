@@ -2,8 +2,6 @@ package permissions
 
 import (
 	"errors"
-	"net"
-	"strings"
 
 	gormadapter "github.com/Krlier/gorm-adapter"
 	"github.com/casbin/casbin"
@@ -37,8 +35,8 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 		"m",
 		"(p.id == r.id) && "+
 			"(p.remoteuser == '*' || r.remoteuser == p.remoteuser || ( p.remoteuser == '.' && r.remoteuser == r.currentuser) == true ) && "+
-			"( ipMultipleMatch(r.sourceip, p.sourceip) ) && "+
-			"( ipMultipleMatch(r.targetip, p.targetip) ) && "+
+			"( ipMatch(r.sourceip, p.sourceip) ) && "+
+			"( ipMatch(r.targetip, p.targetip) ) && "+
 			"( p.actions == '*' || r.actions == p.actions )",
 	)
 
@@ -47,10 +45,6 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	if err != nil {
 		return nil, errors.New("Could not create new Enforcer")
 	}
-
-	// Enable multiples IP address as source or targets
-	e.AddFunction("ipMultipleMatch", IPMultipleMatchFunc)
-
 	e.SetModel(m)
 	e.EnableAutoSave(true)
 
@@ -61,41 +55,4 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	}
 
 	return e, nil
-}
-
-// IPMultipleMatch determines whether any of IP address in ip1 matches the pattern of any IP address in ip2, ip2 can be an IP address or a CIDR pattern.
-func IPMultipleMatch(ips1 string, ips2 string) bool {
-	anyMatch := false
-	for _, ip2 := range strings.Split(ips2, ";") {
-		for _, ip1 := range strings.Split(ips1, ";") {
-			objIP1 := net.ParseIP(ip1)
-			if objIP1 == nil {
-				panic("invalid argument: ip1 in IPMultipleMatch() function is not an IP address.")
-			}
-			_, cidr, err := net.ParseCIDR(ip2)
-			if err != nil {
-				objIP2 := net.ParseIP(ip2)
-				if objIP2 == nil {
-					panic("invalid argument: ip2 in IPMultipleMatch() function is neither an IP address nor a CIDR.")
-				}
-
-				if objIP1.Equal(objIP2) == true {
-					anyMatch = true
-				}
-			}
-
-			if cidr.Contains(objIP1) == true {
-				anyMatch = true
-			}
-		}
-	}
-	return anyMatch
-}
-
-// IPMultipleMatchFunc is the wrapper for IPMultipleMatch.
-func IPMultipleMatchFunc(args ...interface{}) (interface{}, error) {
-	ip1 := args[0].(string)
-	ip2 := args[1].(string)
-
-	return bool(IPMultipleMatch(ip1, ip2)), nil
 }
