@@ -37,6 +37,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/globocom/gsh/cli/cmd/auth"
@@ -91,10 +92,15 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 			fmt.Printf("Client error getting user IP: (%s)\n", err.Error())
 			os.Exit(1)
 		}
-		_, userIPVerified, err := net.ParseCIDR(userIP)
-		if err != nil {
-			fmt.Printf("Client error parsing user IP: (%s)\n", err.Error())
-			os.Exit(1)
+		// check every IP at list: userIP can be a list separated by commas
+		userIPsVerified := []string{}
+		for _, userEntryIP := range strings.Split(userIP, ";") {
+			_, userIPVerified, err := net.ParseCIDR(userEntryIP)
+			if err != nil {
+				fmt.Printf("Client error parsing user IP %s: (%s)\n", userEntryIP, err.Error())
+				os.Exit(1)
+			}
+			userIPsVerified = append(userIPsVerified, userIPVerified.String())
 		}
 
 		// Get remote host
@@ -107,10 +113,15 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 			fmt.Printf("Client error getting remote host: (%s)\n", err.Error())
 			os.Exit(1)
 		}
-		_, remoteHostVerified, err := net.ParseCIDR(remoteHost)
-		if err != nil {
-			fmt.Printf("Client error parsing remote host: (%s)\n", err.Error())
-			os.Exit(1)
+		// check every IP at list: userIP can be a list separated by commas
+		remoteHostsVerified := []string{}
+		for _, remoteHostEntry := range strings.Split(remoteHost, ";") {
+			_, remoteHostVerified, err := net.ParseCIDR(remoteHostEntry)
+			if err != nil {
+				fmt.Printf("Client error parsing remote host %s: (%s)\n", remoteHostEntry, err.Error())
+				os.Exit(1)
+			}
+			remoteHostsVerified = append(remoteHostsVerified, remoteHostVerified.String())
 		}
 
 		// Get action
@@ -131,8 +142,8 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 		roleRequest := types.Role{
 			ID:         args[0],
 			RemoteUser: remoteUser,
-			SourceIP:   userIPVerified.String(),
-			TargetIP:   remoteHostVerified.String(),
+			SourceIP:   strings.Join(userIPsVerified, ";"),
+			TargetIP:   strings.Join(remoteHostsVerified, ";"),
 			Actions:    actions,
 		}
 
