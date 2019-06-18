@@ -18,6 +18,7 @@ func init() {
 	rootCmd.AddCommand(checkPermissionCmd)
 	checkPermissionCmd.Flags().String("serial-number", "", "the serial-number of the ssh certificate")
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
+	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
 	checkPermissionCmd.Flags().String("api", "", "the endpoint GSH API to check certificate")
 }
 
@@ -81,6 +82,17 @@ var checkPermissionCmd = &cobra.Command{
 			os.Exit(-1)
 		}
 
+		// Get key-id flag
+		keyID, err := cmd.Flags().GetString("key-id")
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"event":  "reading flag parameter from sshd",
+				"topic":  "key-id not informed",
+				"key":    "key-id",
+				"result": "fail",
+			}).Error("Failed to read key-id")
+		}
+
 		// Get username flag
 		username, err := cmd.Flags().GetString("username")
 		if err != nil {
@@ -94,7 +106,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Defining default field to log
-		auditLogger := log.WithFields(logrus.Fields{"serial_number": serialNumber, "username": username})
+		auditLogger := log.WithFields(logrus.Fields{"serial_number": serialNumber, "username": username, "key-id": keyID})
 
 		// Get GSH API endpoint
 		api, err := cmd.Flags().GetString("api")
@@ -109,7 +121,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Get certificate from GSH API
-		certInfo, err := getCertInfo(serialNumber, api)
+		certInfo, err := getCertInfo(serialNumber, keyID, api)
 		if err != nil {
 			auditLogger.WithFields(logrus.Fields{
 				"event":  "certinfo error validation",
@@ -177,7 +189,7 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 // getCertInfo reveives a serialNumber and check on GSH API for certificate
-func getCertInfo(serialNumber string, api string) (CertInfo, error) {
+func getCertInfo(serialNumber string, keyID string, api string) (CertInfo, error) {
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
@@ -192,7 +204,7 @@ func getCertInfo(serialNumber string, api string) (CertInfo, error) {
 	}
 
 	// Get certificate from API
-	resp, err := netClient.Get(api + "/certificates/" + url.QueryEscape(serialNumber))
+	resp, err := netClient.Get(fmt.Sprintf("%s/certificates/%s?key_id=%s", api, url.QueryEscape(serialNumber), url.QueryEscape(keyID)))
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",
