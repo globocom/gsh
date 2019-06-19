@@ -49,3 +49,37 @@ help:
 	} \
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort
 	printf "\n"
+
+## build all binaries at dist folder
+release:
+	rm -rf dist
+	mkdir dist
+	for GOOS in darwin linux windows; \
+	do \
+		for GOARCH in amd64; \
+		do \
+			echo "-> Compiling for $${GOOS}/$${GOARCH}..."; \
+			mkdir -p dist/$${GOOS}/$${GOARCH}; \
+			GOOS=$${GOOS} GOARCH=$${GOARCH} $(GO) build -o dist/$${GOOS}/$${GOARCH}/gsh cli/main.go; \
+			if [ $${GOOS} == "darwin" ]; \
+			then \
+				echo "-> Signing gsh CLI for $${GOOS}/$${GOARCH} with $${DEVELOPER_CERT_ID} cert..."; \
+				codesign -s $${DEVELOPER_CERT_ID} dist/$${GOOS}/$${GOARCH}/gsh; \
+			fi; \
+			GOOS=$${GOOS} GOARCH=$${GOARCH} $(GO) build -o dist/$${GOOS}/$${GOARCH}/gsh-api api/main.go; \
+			GOOS=$${GOOS} GOARCH=$${GOARCH} $(GO) build -o dist/$${GOOS}/$${GOARCH}/gsh-agent agent/main.go; \
+			tar cfz dist/gsh-$${GOOS}-$${GOARCH}.tar.gz README.md LICENSE -C dist/$${GOOS}/$${GOARCH} .; \
+		done; \
+	done
+
+tar:
+## build tar for binaries at dist folder
+	rm -rf dist/*.tar.gz
+	for GOOS in darwin linux windows; \
+	do \
+		for GOARCH in amd64; \
+		do \
+			echo "-> Generate tar for $${GOOS}/$${GOARCH}..."; \
+			tar cfz dist/gsh-$${GOOS}-$${GOARCH}.tar.gz README.md LICENSE -C dist/$${GOOS}/$${GOARCH} .; \
+		done; \
+	done
