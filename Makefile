@@ -72,8 +72,8 @@ release:
 		done; \
 	done
 
-tar:
 ## build tar for binaries at dist folder
+compact:
 	rm -rf dist/*.tar.gz
 	for GOOS in darwin linux windows; \
 	do \
