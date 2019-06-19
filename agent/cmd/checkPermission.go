@@ -105,6 +105,16 @@ var checkPermissionCmd = &cobra.Command{
 			os.Exit(-1)
 		}
 
+		certFingerprint, err := cmd.Flags().GetString("cert-fingerprint")
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"event":  "reading flag parameter from sshd",
+				"topic":  "cert_fingerprint not informed",
+				"key":    "cert_fingerprint",
+				"result": "fail",
+			}).Error("Failed to read cert_fingerprint")
+		}
+
 		// Defining default field to log
 		auditLogger := log.WithFields(logrus.Fields{"serial_number": serialNumber, "username": username, "key-id": keyID})
 
@@ -121,7 +131,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Get certificate from GSH API
-		certInfo, err := getCertInfo(serialNumber, keyID, api)
+		certInfo, err := getCertInfo(serialNumber, keyID, certFingerprint, api)
 		if err != nil {
 			auditLogger.WithFields(logrus.Fields{
 				"event":  "certinfo error validation",
@@ -189,7 +199,7 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 // getCertInfo reveives a serialNumber and check on GSH API for certificate
-func getCertInfo(serialNumber string, keyID string, api string) (CertInfo, error) {
+func getCertInfo(serialNumber string, keyID string, certFingerprint string, api string) (CertInfo, error) {
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
@@ -204,7 +214,7 @@ func getCertInfo(serialNumber string, keyID string, api string) (CertInfo, error
 	}
 
 	// Get certificate from API
-	resp, err := netClient.Get(fmt.Sprintf("%s/certificates/%s?key_id=%s", api, url.QueryEscape(serialNumber), url.QueryEscape(keyID)))
+	resp, err := netClient.Get(fmt.Sprintf("%s/certificates/%s?cert_fingerprint=%s&key_id=%s", api, url.QueryEscape(serialNumber), url.QueryEscape(keyID), url.QueryEscape(certFingerprint)))
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",

@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/globocom/gsh/types"
@@ -242,9 +245,16 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed parsing signed key", "details": err.Error()})
 	}
 	signedCert := k.(*ssh.Certificate)
+
 	//assigning the new key id to store the new value into db
 	certRequest.CertKeyID = signedCert.KeyId
 	certRequest.SerialNumber = strconv.FormatUint(signedCert.Serial, 10)
+
+	// generate certificate fingerprint
+	hash := sha256.Sum256(signedCert.Key.Marshal())
+	b64hash := base64.StdEncoding.EncodeToString(hash[:])
+	certRequest.CertFingerprint = fmt.Sprintf("SHA256:%s", strings.TrimRight(b64hash, "="))
+
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
@@ -315,10 +325,11 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 
 	serialNumber := c.Param("serial")
 	keyID := c.QueryParam("key_id")
+	certFingerprint := c.QueryParam("cert_fingerprint")
 
 	certRequest := new(types.CertRequest)
 	//sshd only gives 15 characters for serial number
-	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{CertKeyID: keyID}).First(&certRequest)
+	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{CertKeyID: keyID, CertFingerprint: certFingerprint}).First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }
