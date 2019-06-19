@@ -97,7 +97,10 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
-	jti, _ := getField(&token, "JTI")
+	jti, err := getField(&token, "JTI")
+	if err != nil {
+		jti = ""
+	}
 
 	// Get user roles
 	err = h.permEnforcer.LoadPolicy()
