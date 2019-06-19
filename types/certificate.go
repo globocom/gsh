@@ -27,8 +27,10 @@ type CertRequest struct {
 	KeyID         string        `json:"-" gorm:"column:key_id"`
 
 	//Certificate KeyID and Serial Number, after signed
-	CertKeyID    string `json:"-" gorm:"column:cert_key_id"`
-	SerialNumber string `json:"-" gorm:"column:cert_serial_number"`
+	CertKeyID       string `json:"-" gorm:"column:cert_key_id"`
+	SerialNumber    string `json:"-" gorm:"column:cert_serial_number"`
+	CertType        string `json:"-" gorm:"column:cert_type"`
+	CertFingerprint string `json:"-" gorm:"column:cert_fingerprint"`
 
 	// Columns for database
 	ID         uint       `json:"-" gorm:"primary_key"`

@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/globocom/gsh/types"
@@ -247,8 +250,19 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	certRequest.CertKeyID = signedCert.KeyId
 	certRequest.SerialNumber = strconv.FormatUint(signedCert.Serial, 10)
 
-	// generate certificate fingerprint
+	// generate key fingerprint
 	certRequest.KeyFingerprint = ssh.FingerprintSHA256(signedCert.Key)
+
+	certRequest.CertType = signedCert.Type()
+
+	// generate certificate fingerprint
+	// cleanCert example: ssh-rsa-cert-v01@openssh.com AAAAHHNza...
+	cleanCert := strings.SplitN(signedKey, " ", 2)
+	cleanCert[1] = strings.Trim(cleanCert[1], "\n")
+	// cleanCert[1] AAAAHHNza...=
+	sha256sum := sha256.Sum256([]byte(cleanCert[1]))
+	hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	certRequest.CertFingerprint = hash
 
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
@@ -321,10 +335,24 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 	serialNumber := c.Param("serial")
 	keyID := c.QueryParam("key_id")
 	keyFingerprint := c.QueryParam("key_fingerprint")
+	cert := c.QueryParam("certificate")
+	certType := c.QueryParam("certificate_type")
+
+	// generate certificate fingerprint
+	sha256sum := sha256.Sum256([]byte(cert))
+	certFingerprint := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	if cert == "" {
+		certFingerprint = ""
+	}
 
 	certRequest := new(types.CertRequest)
 	//sshd only gives 15 characters for serial number
-	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{CertKeyID: keyID, KeyFingerprint: keyFingerprint}).First(&certRequest)
+	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{
+		CertKeyID:       keyID,
+		KeyFingerprint:  keyFingerprint,
+		CertFingerprint: certFingerprint,
+		CertType:        certType,
+	}).First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
 }
