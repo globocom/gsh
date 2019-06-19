@@ -24,6 +24,7 @@ type IDToken struct {
 	AuthorizedParty   string                 `json:"azp"`
 	Expiry            jsonTime               `json:"exp"`
 	IssuedAt          jsonTime               `json:"iat"`
+	JTI               string                 `json:"jti"`
 	Nonce             string                 `json:"nonce"`
 	AtHash            string                 `json:"at_hash"`
 	Name              string                 `json:"name"`

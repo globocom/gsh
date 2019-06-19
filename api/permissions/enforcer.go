@@ -48,11 +48,11 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 		return nil, errors.New("Could not create new Enforcer")
 	}
 
-	// Enable multiples IP address as source or targets
-	e.AddFunction("ipMultipleMatch", IPMultipleMatchFunc)
-
 	e.SetModel(m)
 	e.EnableAutoSave(true)
+
+	// Enable multiples IP address as source or targets
+	e.AddFunction("ipMultipleMatch", IPMultipleMatchFunc)
 
 	// Reload policies from database before add admin policies
 	err = e.LoadPolicy()
