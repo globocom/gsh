@@ -19,6 +19,7 @@ func init() {
 	checkPermissionCmd.Flags().String("serial-number", "", "the serial-number of the ssh certificate")
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
 	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
+	checkPermissionCmd.Flags().String("key-fingerprint", "", "The fingerprint's public key used at an ssh certificate.")
 	checkPermissionCmd.Flags().String("api", "", "the endpoint GSH API to check certificate")
 }
 
@@ -105,14 +106,14 @@ var checkPermissionCmd = &cobra.Command{
 			os.Exit(-1)
 		}
 
-		certFingerprint, err := cmd.Flags().GetString("cert-fingerprint")
+		keyFingerprint, err := cmd.Flags().GetString("key-fingerprint")
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"event":  "reading flag parameter from sshd",
-				"topic":  "cert_fingerprint not informed",
-				"key":    "cert_fingerprint",
+				"topic":  "key_fingerprint not informed",
+				"key":    "key_fingerprint",
 				"result": "fail",
-			}).Error("Failed to read cert_fingerprint")
+			}).Error("Failed to read key_fingerprint")
 		}
 
 		// Defining default field to log
@@ -131,7 +132,7 @@ var checkPermissionCmd = &cobra.Command{
 		}
 
 		// Get certificate from GSH API
-		certInfo, err := getCertInfo(serialNumber, keyID, certFingerprint, api)
+		certInfo, err := getCertInfo(serialNumber, keyID, keyFingerprint, api)
 		if err != nil {
 			auditLogger.WithFields(logrus.Fields{
 				"event":  "certinfo error validation",
@@ -199,7 +200,7 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 // getCertInfo reveives a serialNumber and check on GSH API for certificate
-func getCertInfo(serialNumber string, keyID string, certFingerprint string, api string) (CertInfo, error) {
+func getCertInfo(serialNumber string, keyID string, keyFingerprint string, api string) (CertInfo, error) {
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
@@ -214,7 +215,7 @@ func getCertInfo(serialNumber string, keyID string, certFingerprint string, api 
 	}
 
 	// Get certificate from API
-	resp, err := netClient.Get(fmt.Sprintf("%s/certificates/%s?cert_fingerprint=%s&key_id=%s", api, url.QueryEscape(serialNumber), url.QueryEscape(keyID), url.QueryEscape(certFingerprint)))
+	resp, err := netClient.Get(fmt.Sprintf("%s/certificates/%s?key_fingerprint=%s&key_id=%s", api, url.QueryEscape(serialNumber), url.QueryEscape(keyID), url.QueryEscape(keyFingerprint)))
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "get certinfo",

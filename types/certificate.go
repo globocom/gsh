@@ -16,9 +16,10 @@ type CertRequest struct {
 	RemoteHost string    `json:"remote_host,omitempty" gorm:"column:remote_host;index:idx_remote_host"`
 	UserIP     string    `json:"user_ip,omitempty" gorm:"column:user_ip;index:idx_user_ip"`
 
-	ValidAfter  time.Time     `json:"-" gorm:"column:valid_after;index:idx_va"`
-	ValidBefore time.Time     `json:"-" gorm:"column:valid_before;index:idx_vb"`
-	PublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
+	ValidAfter     time.Time     `json:"-" gorm:"column:valid_after;index:idx_va"`
+	ValidBefore    time.Time     `json:"-" gorm:"column:valid_before;index:idx_vb"`
+	PublicKey      ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
+	KeyFingerprint string        `json:"-" gorm:"column:key_fingerprint"`
 
 	// CA used in certificate sign
 	CAPublicKey   ssh.PublicKey `json:"-" sql:"-" gorm:"-" db:"-"`
@@ -26,9 +27,8 @@ type CertRequest struct {
 	KeyID         string        `json:"-" gorm:"column:key_id"`
 
 	//Certificate KeyID and Serial Number, after signed
-	CertKeyID       string `json:"-" gorm:"column:cert_key_id"`
-	SerialNumber    string `json:"-" gorm:"column:cert_serial_number"`
-	CertFingerprint string `json:"-" gorm:"column:cert_fingerprint"`
+	CertKeyID    string `json:"-" gorm:"column:cert_key_id"`
+	SerialNumber string `json:"-" gorm:"column:cert_serial_number"`
 
 	// Columns for database
 	ID         uint       `json:"-" gorm:"primary_key"`
