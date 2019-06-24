@@ -260,9 +260,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	cleanCert := strings.SplitN(signedKey, " ", 2)
 	cleanCert[1] = strings.Trim(cleanCert[1], "\n")
 	// cleanCert[1] AAAAHHNza...=
-	sha256sum := sha256.Sum256([]byte(cleanCert[1]))
-	hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
-	certRequest.CertFingerprint = hash
+	certRequest.CertFingerprint = certificateFingerprint(cleanCert[1])
 
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
@@ -339,8 +337,7 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 	certType := c.QueryParam("certificate_type")
 
 	// generate certificate fingerprint
-	sha256sum := sha256.Sum256([]byte(cert))
-	certFingerprint := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	certFingerprint := certificateFingerprint(cert)
 	if cert == "" {
 		certFingerprint = ""
 	}
@@ -355,4 +352,11 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 	}).First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
+}
+
+// certificateFingerprint generates an internal fingerprint for certificates
+func certificateFingerprint(certificate string) string {
+	sha256sum := sha256.Sum256([]byte(certificate))
+	hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	return hash
 }
