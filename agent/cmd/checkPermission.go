@@ -19,9 +19,9 @@ func init() {
 	checkPermissionCmd.Flags().String("serial-number", "", "the serial-number of the ssh certificate")
 	checkPermissionCmd.Flags().String("username", "", "the username of the user trying to authenticate")
 	checkPermissionCmd.Flags().String("key-id", "", "the key-id of the ssh certificate")
-	checkPermissionCmd.Flags().String("key-fingerprint", "", "The fingerprint's public key used at an ssh certificate.")
-	checkPermissionCmd.Flags().String("certificate", "", "The base64-encoded certificate.")
-	checkPermissionCmd.Flags().String("certificate-type", "", "The certificate type.")
+	checkPermissionCmd.Flags().String("key-fingerprint", "", "The fingerprint's public key used at an ssh certificate")
+	checkPermissionCmd.Flags().String("certificate", "", "The base64-encoded certificate")
+	checkPermissionCmd.Flags().String("certificate-type", "", "The certificate type")
 	checkPermissionCmd.Flags().String("api", "", "the endpoint GSH API to check certificate")
 }
 
