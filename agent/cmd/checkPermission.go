@@ -248,8 +248,8 @@ func getCertInfo(serialNumber, keyID, keyFingerprint, cert, certType, api string
 		fmt.Sprintf("%s/certificates/%s?key_fingerprint=%s&key_id=%s&certificate=%s&certificate_type=%s",
 			api,
 			url.QueryEscape(serialNumber),
-			url.QueryEscape(keyID),
 			url.QueryEscape(keyFingerprint),
+			url.QueryEscape(keyID),
 			url.QueryEscape(cert),
 			url.QueryEscape(certType),
 		))
