@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/globocom/gsh/types"
@@ -242,9 +245,23 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Failed parsing signed key", "details": err.Error()})
 	}
 	signedCert := k.(*ssh.Certificate)
+
 	//assigning the new key id to store the new value into db
 	certRequest.CertKeyID = signedCert.KeyId
 	certRequest.SerialNumber = strconv.FormatUint(signedCert.Serial, 10)
+
+	// generate key fingerprint
+	certRequest.KeyFingerprint = ssh.FingerprintSHA256(signedCert.Key)
+
+	certRequest.CertType = signedCert.Type()
+
+	// generate certificate fingerprint
+	// cleanCert example: ssh-rsa-cert-v01@openssh.com AAAAHHNza...
+	cleanCert := strings.SplitN(signedKey, " ", 2)
+	cleanCert[1] = strings.Trim(cleanCert[1], "\n")
+	// cleanCert[1] AAAAHHNza...=
+	certRequest.CertFingerprint = certificateFingerprint(cleanCert[1])
+
 	// storing certificate in database
 	dbc := h.db.Create(certRequest)
 	if h.db.NewRecord(certRequest) {
@@ -315,10 +332,31 @@ func (h AppHandler) CertInfo(c echo.Context) error {
 
 	serialNumber := c.Param("serial")
 	keyID := c.QueryParam("key_id")
+	keyFingerprint := c.QueryParam("key_fingerprint")
+	cert := c.QueryParam("certificate")
+	certType := c.QueryParam("certificate_type")
+
+	// generate certificate fingerprint
+	certFingerprint := certificateFingerprint(cert)
+	if cert == "" {
+		certFingerprint = ""
+	}
 
 	certRequest := new(types.CertRequest)
 	//sshd only gives 15 characters for serial number
-	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{CertKeyID: keyID}).First(&certRequest)
+	h.db.Where("cert_serial_number LIKE ?", serialNumber+"%").Where(types.CertRequest{
+		CertKeyID:       keyID,
+		KeyFingerprint:  keyFingerprint,
+		CertFingerprint: certFingerprint,
+		CertType:        certType,
+	}).First(&certRequest)
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "remote_user": certRequest.RemoteUser, "remote_host": certRequest.RemoteHost})
+}
+
+// certificateFingerprint generates an internal fingerprint for certificates
+func certificateFingerprint(certificate string) string {
+	sha256sum := sha256.Sum256([]byte(certificate))
+	hash := base64.RawStdEncoding.EncodeToString(sha256sum[:])
+	return hash
 }
