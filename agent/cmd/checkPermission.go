@@ -229,7 +229,7 @@ func checkInterfaces(remoteHost string) bool {
 }
 
 // getCertInfo reveives a serialNumber and check on GSH API for certificate
-func getCertInfo(serialNumber string, keyID string, keyFingerprint string, cert string, certType string, api string) (CertInfo, error) {
+func getCertInfo(serialNumber, keyID, keyFingerprint, cert, certType, api string) (CertInfo, error) {
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{
