@@ -112,10 +112,10 @@ var checkPermissionCmd = &cobra.Command{
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"event":  "reading flag parameter from sshd",
-				"topic":  "key_fingerprint not informed",
-				"key":    "key_fingerprint",
+				"topic":  "key-fingerprint not informed",
+				"key":    "key-fingerprint",
 				"result": "fail",
-			}).Error("Failed to read key_fingerprint")
+			}).Error("Failed to read key-fingerprint")
 		}
 
 		cert, err := cmd.Flags().GetString("certificate")
