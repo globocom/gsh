@@ -158,4 +158,95 @@ func TestAuthenticate(t *testing.T) {
 				t.Fatalf("OIDC: check fail with malformed JWT signature (%v)", err)
 			}
 		})
+	t.Run(
+		"JWT header match signature, but issuer not recognized",
+		func(t *testing.T) {
+			ca := OpenIDCAuth{}
+			ctx.SetRequest(&http.Request{
+				// {"exp": 9999999999,"aud": ["gsh"],"azp": "gsh"}
+				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCJ9.OLLARTd2sZFzhOvuKnKYZO3FZXC9xQakmmxag6MW9ZXmy3--wAHF4vOTDcCAQ7yx6yP8KPrZ2xqMhSqBCbKxhAXTtrEE5J4zaZqE4mYW8eL8ShoW3ltkeF1VaUBGeRJROpwf4q8Aax32FbQCF7rMFFT6KIJi5v6HK-NsKT1o-wxaNmxpcvnafoFJv4Fo2VEH2NbDwOJujAJteeYrbnEeKm3MoK5mWSbp6XWbetFf__2Raju58n-vy-c8MbgwOf61V7c14m6yWuA4oFCr6K4ENHyqF0rZ-L6WdzHwHQUpTFl9k8-WWir4TYgxr2SM90_EhwlcjioMOgaOClBYg8CW8g"}},
+			})
+			config.Set("oidc_audience", "gsh")
+			config.Set("oidc_authorized_party", "gsh")
+			jws := `{
+					"keys": [
+						{
+							"kty": "RSA",
+							"e": "AQAB",
+							"n": "2fH0CYidOjU718EGZCwa7X31Fcwmw75i8s-zQGdpJiFhSjIGjWrqocCW-mEA51vJCAewDyQetkhWZsocS3aIEPs5ujrhTlwvCXS5MKl_xHPDaUdBtnM8rF7IFLGpu9XCWZTw1tAHRO9B4kUq_sH6C41dCusJna7U4Ng4uoV-OjmUYpde7YQiMm-iNqeKalj6sXxsiVJwcjpZthoH0PW8yf4Ccmr5FXfRD94vAkeW9oCvvhYxVJHzU9fHVU0giyYq34qQiJsscASBdoJ7AuAiPYwaWt0nY3XL8BmUN0OZybk3HTQXyk5XNtvEwNL3ZleK1EQOZCFj1h_UdZsvrVCWRw"
+						}
+					]
+				}`
+			var keySet jose.JSONWebKeySet
+			json.Unmarshal([]byte(jws), &keySet)
+			config.Set("oidc_keys", keySet)
+
+			_, err := ca.Authenticate(ctx, *config)
+			if err == nil {
+				t.Fatalf("OIDC: check fail with well-formed JWT signature without issuer (%v)", err)
+			}
+		})
+	t.Run(
+		"JWT without user field configured",
+		func(t *testing.T) {
+			ca := OpenIDCAuth{}
+			ctx.SetRequest(&http.Request{
+				// {"exp":99999999999,"aud":["gsh"],"azp":"gsh","iss":"accounts.example.org/gsh"}
+				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCIsImlzcyI6ImFjY291bnRzLmV4YW1wbGUub3JnL2dzaCJ9.KCTO-fLzQWGKdVeoSkmZctzVPQZDmXlCFOgQBDL5_dIIlshce_sZ6lyGR5gmafaTVHqdUiC27BxBqYvOgmma1FpUiohQfFDrD9RwZyPtT-jHCkDp-edq5Ot_WngFgNvf_PPttaJlBlRn5kUayU9h57iPNz8DFbNiJrSULauKk8GtVqRZabexnfm91HHdMsMdZ4IMK4_OOFfqULknZTzzVNc0EO63IARyeK9kGhaj3d3ha2wed5GvCRDgTT9Xo29ekF3a3XlIyvz5lCdtW1EvjmG7oXzuTUlzyBuxKRrUqtZ8zVaMOHDNO23PobsEeDtybC4-sBANZCNfsVl8WNxJXg"}},
+			})
+			config.Set("oidc_audience", "gsh")
+			config.Set("oidc_authorized_party", "gsh")
+			jws := `{
+					"keys": [
+						{
+							"kty": "RSA",
+							"e": "AQAB",
+							"n": "2fH0CYidOjU718EGZCwa7X31Fcwmw75i8s-zQGdpJiFhSjIGjWrqocCW-mEA51vJCAewDyQetkhWZsocS3aIEPs5ujrhTlwvCXS5MKl_xHPDaUdBtnM8rF7IFLGpu9XCWZTw1tAHRO9B4kUq_sH6C41dCusJna7U4Ng4uoV-OjmUYpde7YQiMm-iNqeKalj6sXxsiVJwcjpZthoH0PW8yf4Ccmr5FXfRD94vAkeW9oCvvhYxVJHzU9fHVU0giyYq34qQiJsscASBdoJ7AuAiPYwaWt0nY3XL8BmUN0OZybk3HTQXyk5XNtvEwNL3ZleK1EQOZCFj1h_UdZsvrVCWRw"
+						}
+					]
+				}`
+			var keySet jose.JSONWebKeySet
+			json.Unmarshal([]byte(jws), &keySet)
+			config.Set("oidc_keys", keySet)
+			// make issuer ok
+			config.Set("oidc_base_url", "accounts.example.org")
+			config.Set("oidc_realm", "gsh")
+
+			_, err := ca.Authenticate(ctx, *config)
+			if err == nil {
+				t.Fatalf("OIDC: check fail, JWT without claim field (%v)", err)
+			}
+		})
+	t.Run(
+		"JWT with user field",
+		func(t *testing.T) {
+			ca := OpenIDCAuth{}
+			ctx.SetRequest(&http.Request{
+				// {"exp":99999999999,"aud":["gsh"],"azp":"gsh","iss":"accounts.example.org/gsh","email":"gsh@accounts.example.org"}
+				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCIsImlzcyI6ImFjY291bnRzLmV4YW1wbGUub3JnL2dzaCIsImVtYWlsIjoiZ3NoQGFjY291bnRzLmV4YW1wbGUub3JnIn0.fJYfGGwgf9rFtpbNwIXAVx38VVgh7ByLhfPVM-WztbcTVVwukSMrPBznbL0RFOLwSgxyzi6SCRP1CjygMHphEjT1ekZrKyPdX9ay6iaSNA-HAeD2FeUey1G-uD6rpV3X9vhBQNtfWjZcTUoKsdksHxbkSu_3URjVW9UFUwf0ErRk7-JirFyKVUKMOMeXtepgVU94H9V1Id0YXBCaGc26gQtoe9O8oY78LBIWQ1SEy8seUEA9CBwkgkXjkAYKpKh1mcf84jtvRw4l6usIeZwQKuu6UIflgeyk0HAMNdW9HfCFYfyiSwK32XXL-X7uJzMd7Nt5EX4lUa5jf_isd-HN7A"}},
+			})
+			config.Set("oidc_audience", "gsh")
+			config.Set("oidc_authorized_party", "gsh")
+			jws := `{
+						"keys": [
+							{
+								"kty": "RSA",
+								"e": "AQAB",
+								"n": "2fH0CYidOjU718EGZCwa7X31Fcwmw75i8s-zQGdpJiFhSjIGjWrqocCW-mEA51vJCAewDyQetkhWZsocS3aIEPs5ujrhTlwvCXS5MKl_xHPDaUdBtnM8rF7IFLGpu9XCWZTw1tAHRO9B4kUq_sH6C41dCusJna7U4Ng4uoV-OjmUYpde7YQiMm-iNqeKalj6sXxsiVJwcjpZthoH0PW8yf4Ccmr5FXfRD94vAkeW9oCvvhYxVJHzU9fHVU0giyYq34qQiJsscASBdoJ7AuAiPYwaWt0nY3XL8BmUN0OZybk3HTQXyk5XNtvEwNL3ZleK1EQOZCFj1h_UdZsvrVCWRw"
+							}
+						]
+					}`
+			var keySet jose.JSONWebKeySet
+			json.Unmarshal([]byte(jws), &keySet)
+			config.Set("oidc_keys", keySet)
+			// make issuer ok
+			config.Set("oidc_base_url", "accounts.example.org")
+			config.Set("oidc_realm", "gsh")
+			config.Set("oidc_claim", "Email")
+
+			_, err := ca.Authenticate(ctx, *config)
+			if err != nil {
+				t.Fatalf("OIDC: check fail with JWT and issuer OK (%v)", err)
+			}
+		})
 }
