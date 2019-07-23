@@ -40,6 +40,7 @@ type Token struct {
 	AuthorizedParty   string                 `json:"azp"`
 	Expiry            jsonTime               `json:"exp"`
 	IssuedAt          jsonTime               `json:"iat"`
+	JTI               string                 `json:"jti"`
 	Nonce             string                 `json:"nonce"`
 	AtHash            string                 `json:"at_hash"`
 	Name              string                 `json:"name"`
@@ -116,6 +117,12 @@ func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, 
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: The field declared in oidc_claim doesn't exist %v", err.Error())
 	}
+
+	jti, err := ca.getField(&token, "JTI")
+	if err != nil {
+		jti = ""
+	}
+	c.Set("JTI", jti)
 
 	return username, nil
 }

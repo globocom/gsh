@@ -248,5 +248,50 @@ func TestAuthenticate(t *testing.T) {
 			if err != nil {
 				t.Fatalf("OIDC: check fail with JWT and issuer OK (%v)", err)
 			}
+
+			// check for JTI at session
+			jti := ctx.Get("JTI")
+			if jti != "" {
+				t.Fatalf("OIDC: invalid JTI at JWT without JTI (%v)", jti)
+			}
+
+		})
+	t.Run(
+		"Check for JTI after JWT validation",
+		func(t *testing.T) {
+			ca := OpenIDCAuth{}
+			ctx.SetRequest(&http.Request{
+				// {"exp":99999999999,"aud":["gsh"],"azp":"gsh","iss":"accounts.example.org/gsh","email":"gsh@accounts.example.org","JTI":"jti-value"}
+				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCIsImlzcyI6ImFjY291bnRzLmV4YW1wbGUub3JnL2dzaCIsImVtYWlsIjoiZ3NoQGFjY291bnRzLmV4YW1wbGUub3JnIiwiSlRJIjoianRpLXZhbHVlIn0.rejbVdi0yXtyjfZJ_x8c8zkyjHFENWZHGv3L12EWrHKhDtc3Si4BZlI7s8jP738i0KocT8eg3KmjRjbOcLVNS67wK80kdAkynxlCYZ7YdOzFp1UXphWoarTSgWG31sOv2dV2yWtnqDGnoMhwamk86E0L2t5uIHXVY02K5tibKXkXqDwts9TJbin3-zADPw391RuNJqvNi95bRzIj6MdReTVtlLPUlrqGkr2famaCOt-svuAIisRgPjzAkOalvoV7n9sAmR0l39_qM8QWG1BxY1EzbfAYUidCeitQNpGHsTZi34htd6i_e3G9IQHwItp0sJzmDEJXHAPiLuLF2k2t4w"}},
+			})
+			config.Set("oidc_audience", "gsh")
+			config.Set("oidc_authorized_party", "gsh")
+			jws := `{
+							"keys": [
+								{
+									"kty": "RSA",
+									"e": "AQAB",
+									"n": "2fH0CYidOjU718EGZCwa7X31Fcwmw75i8s-zQGdpJiFhSjIGjWrqocCW-mEA51vJCAewDyQetkhWZsocS3aIEPs5ujrhTlwvCXS5MKl_xHPDaUdBtnM8rF7IFLGpu9XCWZTw1tAHRO9B4kUq_sH6C41dCusJna7U4Ng4uoV-OjmUYpde7YQiMm-iNqeKalj6sXxsiVJwcjpZthoH0PW8yf4Ccmr5FXfRD94vAkeW9oCvvhYxVJHzU9fHVU0giyYq34qQiJsscASBdoJ7AuAiPYwaWt0nY3XL8BmUN0OZybk3HTQXyk5XNtvEwNL3ZleK1EQOZCFj1h_UdZsvrVCWRw"
+								}
+							]
+						}`
+			var keySet jose.JSONWebKeySet
+			json.Unmarshal([]byte(jws), &keySet)
+			config.Set("oidc_keys", keySet)
+			// make issuer ok
+			config.Set("oidc_base_url", "accounts.example.org")
+			config.Set("oidc_realm", "gsh")
+			config.Set("oidc_claim", "Email")
+
+			_, err := ca.Authenticate(ctx, *config)
+			if err != nil {
+				t.Fatalf("OIDC: check fail with JWT valid (%v)", err)
+			}
+
+			// check for JTI at session
+			jti := ctx.Get("JTI")
+			if jti != "jti-value" {
+				t.Fatalf("OIDC: invalid JTI at JWT with JTI (%v)", jti)
+			}
 		})
 }
