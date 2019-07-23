@@ -216,7 +216,7 @@ func (ca OpenIDCAuth) verifyAuthorizedParty(token Token, azp string) error {
 
 func (ca OpenIDCAuth) verifyIssuer(token Token, issuer string) error {
 	if token.Issuer != issuer {
-		return fmt.Errorf("Id Token issuer not recognized")
+		return fmt.Errorf("Id Token issuer not recognized (expected %s -> got %s)", issuer, token.Issuer)
 	}
 	return nil
 }
