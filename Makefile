@@ -83,3 +83,7 @@ compact:
 			tar cfz dist/gsh-$${GOOS}-$${GOARCH}.tar.gz README.md LICENSE -C dist/$${GOOS}/$${GOARCH} .; \
 		done; \
 	done
+
+## build rpm for agent at dist folder
+rpm:
+	docker run -e VERSION=$(git describe) --rm -v $PWD:/tmp/pkg goreleaser/nfpm pkg --config /tmp/pkg/gsh-agent.fpm.yml --target /tmp/pkg/dist/gsh-agent.rpm
