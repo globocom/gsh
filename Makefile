@@ -23,6 +23,7 @@ PROJECT := GSH
 get-test-deps:
 	$(GO) get -u github.com/golang/dep/cmd/dep
 	$(GO) get -u golang.org/x/lint/golint
+	$(GO) get -u github.com/mattn/goveralls
 
 ## Runs a security static analysis using Gosec
 check-sec:
@@ -34,7 +35,7 @@ lint:
 	$(GOLINT) $(shell $(GO) list ./...)
 
 ## Perfoms all make tests
-test: get-test-deps lint
+test: get-test-deps lint coverage
 
 ## Prints help message
 help:
@@ -83,3 +84,8 @@ compact:
 			tar cfz dist/gsh-$${GOOS}-$${GOARCH}.tar.gz README.md LICENSE -C dist/$${GOOS}/$${GOARCH} .; \
 		done; \
 	done
+
+## Run tests with code coverage
+coverage:
+    $(GO) test ./... -coverprofile=c.out
+    $(GO) tool cover -html=c.out -o coverage.html
