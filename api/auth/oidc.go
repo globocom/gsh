@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -23,37 +22,6 @@ type Auth interface {
 
 // OpenIDCAuth is struct thats implements Auth interface methods for OpenID
 type OpenIDCAuth struct{}
-
-type claimSource struct {
-	Endpoint    string `json:"endpoint"`
-	AccessToken string `json:"access_token"`
-}
-
-// jsonTime needs be a type to contain an UnmarshalJSON method as follows
-type jsonTime time.Time
-
-// Token is IDToken from OpenID Connect
-type Token struct {
-	Issuer            string                 `json:"iss"`
-	Subject           string                 `json:"sub"`
-	Audience          []string               `json:"aud"`
-	AuthorizedParty   string                 `json:"azp"`
-	Expiry            jsonTime               `json:"exp"`
-	IssuedAt          jsonTime               `json:"iat"`
-	JTI               string                 `json:"jti"`
-	Nonce             string                 `json:"nonce"`
-	AtHash            string                 `json:"at_hash"`
-	Name              string                 `json:"name"`
-	PreferredUsername string                 `json:"preferred_username"`
-	GivenName         string                 `json:"given_name"`
-	FamilyName        string                 `json:"family_name"`
-	MiddleName        string                 `json:"middle_name"`
-	Nickname          string                 `json:"nickname"`
-	PhoneNumber       string                 `json:"phone_number"`
-	Email             string                 `json:"email"`
-	ClaimNames        map[string]string      `json:"_claim_names"`
-	ClaimSources      map[string]claimSource `json:"_claim_sources"`
-}
 
 // Authenticate uses context information and configuration to authenticate an user using OpenID Connect.
 //   Authenticate returns an username (or oidc_claim configured) and an error.
@@ -76,8 +44,7 @@ func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, 
 	jwt := jwtSlice[1]
 
 	// Parse JWT
-	token := Token{}
-	token, err = ca.parseIDToken(jwt)
+	token, err := ca.parseIDToken(jwt)
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
 	}
@@ -112,13 +79,13 @@ func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, 
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
 	}
 
-	field := config.GetString("oidc_claim")
-	username, err := ca.getField(&token, field)
+	field := config.GetString("oidc_claim_name")
+	username, err := ca.getField(token, field)
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: The field declared in oidc_claim doesn't exist %v", err.Error())
 	}
 
-	jti, err := ca.getField(&token, "JTI")
+	jti, err := ca.getField(token, "jti")
 	if err != nil {
 		jti = ""
 	}
@@ -190,46 +157,92 @@ func (ca OpenIDCAuth) verifySignature(jwt string, config viper.Viper) error {
 	return nil
 }
 
-func (ca OpenIDCAuth) verifyExpiry(token Token) error {
-	if time.Time(token.Expiry).Before(time.Now()) {
-		return fmt.Errorf("Token is expired (%s)", time.Time(token.Expiry).String())
+func (ca OpenIDCAuth) verifyExpiry(token map[string]interface{}) error {
+
+	// get exp value
+	tokenExp, ok := token["exp"].(float64)
+	if !ok {
+		return fmt.Errorf("verifyExpiry: IDToken issued without exp (%v)", token["exp"])
+	}
+
+	if time.Time(time.Unix(int64(tokenExp), 0)).Before(time.Now()) {
+		return fmt.Errorf("Token is expired (%v)", tokenExp)
 	}
 	return nil
 }
 
-func (ca OpenIDCAuth) verifyAudience(token Token, audience string) error {
+func (ca OpenIDCAuth) verifyAudience(token map[string]interface{}, audience string) error {
+
+	// get aud value
+	tokenAud, ok := token["aud"]
+	if !ok {
+		return errors.New("verifyAudience: IDToken issued without audience")
+	}
+
+	// check type
+	var audiences []string
+	tokenAudiences, ok := tokenAud.([]interface{})
+	if ok {
+		// is list of strings
+		for _, aud := range tokenAudiences {
+			audiences = append(audiences, aud.(string))
+		}
+	} else {
+		// is string
+		audString, ok := tokenAud.(string)
+		if ok {
+			audiences = append(audiences, audString)
+		} else {
+			return errors.New("verifyAudience: aud invalid type")
+		}
+	}
+
+	// check auds from token
 	fail := false
-	for _, aud := range token.Audience {
+	for _, aud := range audiences {
 		if aud == audience {
 			fail = true
 		}
 	}
 	if !fail {
-		return errors.New("verifyAudience: Id Token issued to other audience")
+		return errors.New("verifyAudience: IDToken issued to other audience")
 	}
 	return nil
 }
 
-func (ca OpenIDCAuth) verifyAuthorizedParty(token Token, azp string) error {
+func (ca OpenIDCAuth) verifyAuthorizedParty(token map[string]interface{}, azp string) error {
+
+	tokenAzp, ok := token["azp"].(string)
+	if !ok {
+		return errors.New("verifyAuthorizedParty: IDToken issued without valid azp")
+	}
+
 	// Verifies if authorized party is present
-	if len(azp) == 0 && len(token.AuthorizedParty) == 0 {
+	if len(azp) == 0 && len(tokenAzp) == 0 {
 		return nil
 	}
-	if token.AuthorizedParty != azp {
-		return fmt.Errorf("verifyAuthorizedParty: IDToken issued to another authorized party (%s -> %s)", azp, token.AuthorizedParty)
+
+	if tokenAzp != azp {
+		return fmt.Errorf("verifyAuthorizedParty: IDToken issued to another authorized party (%s -> %s)", azp, tokenAzp)
 	}
 	return nil
 }
 
-func (ca OpenIDCAuth) verifyIssuer(token Token, issuer string) error {
-	if token.Issuer != issuer {
-		return fmt.Errorf("Id Token issuer not recognized (expected %s -> got %s)", issuer, token.Issuer)
+func (ca OpenIDCAuth) verifyIssuer(token map[string]interface{}, issuer string) error {
+
+	tokenIss, ok := token["iss"].(string)
+	if !ok {
+		return errors.New("verifyIssuer: IDToken issued without valid iss")
+	}
+
+	if tokenIss != issuer {
+		return fmt.Errorf("IDToken issuer not recognized (expected %s -> got %s)", issuer, tokenIss)
 	}
 	return nil
 }
 
-func (ca OpenIDCAuth) parseIDToken(jwt string) (Token, error) {
-	var token Token
+func (ca OpenIDCAuth) parseIDToken(jwt string) (map[string]interface{}, error) {
+	var token map[string]interface{}
 	parts := strings.Split(jwt, ".")
 	if len(parts) < 2 {
 		return token, fmt.Errorf("parseIDToken: Malformed JWT, expected 3 parts got %d", len(parts))
@@ -246,50 +259,13 @@ func (ca OpenIDCAuth) parseIDToken(jwt string) (Token, error) {
 	return token, nil
 }
 
-func (j *jsonTime) UnmarshalJSON(b []byte) error {
-	var n json.Number
-	if err := json.Unmarshal(b, &n); err != nil {
-		return err
-	}
-	var unix int64
-
-	if t, err := n.Int64(); err == nil {
-		unix = t
-	} else {
-		f, err := n.Float64()
-		if err != nil {
-			return err
-		}
-		unix = int64(f)
-	}
-	*j = jsonTime(time.Unix(unix, 0))
-	return nil
-}
-
-// audience needs be a type to contain an UnmarshalJSON method as follows
-type audience []string
-
-func (a *audience) UnmarshalJSON(b []byte) error {
-	var s string
-	if json.Unmarshal(b, &s) == nil {
-		*a = audience{s}
-		return nil
-	}
-	var auds []string
-	if err := json.Unmarshal(b, &auds); err != nil {
-		return err
-	}
-	*a = audience(auds)
-	return nil
-}
-
 // getField returns the value of a field in a token or error if the field doesn't exist
-func (ca OpenIDCAuth) getField(token *Token, field string) (string, error) {
-	r := reflect.ValueOf(token)
-	f := reflect.Indirect(r).FieldByName(field)
-	result := f.String()
-	if result == "<invalid Value>" {
-		return "", fmt.Errorf("getField: Field (%s) not found at IDToken", field)
+func (ca OpenIDCAuth) getField(token map[string]interface{}, field string) (string, error) {
+
+	tokenField, ok := token[field].(string)
+	if !ok {
+		return "", fmt.Errorf("getField: IDToken issued without %s", field)
 	}
-	return result, nil
+
+	return tokenField, nil
 }

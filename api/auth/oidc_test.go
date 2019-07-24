@@ -98,6 +98,19 @@ func TestAuthenticate(t *testing.T) {
 			}
 		})
 	t.Run(
+		"JWT header mismatch audience (as string)",
+		func(t *testing.T) {
+			ca := OpenIDCAuth{}
+			ctx.SetRequest(&http.Request{
+				// {"audience": "mis_gsh"}
+				Header: http.Header{"Authorization": []string{"JWT string.eyJhdWQiOiJnc2gifQ.string"}},
+			})
+			_, err := ca.Authenticate(ctx, *config)
+			if err == nil {
+				t.Fatalf("OIDC: check fail with mismatch JWT audience string (%v)", err)
+			}
+		})
+	t.Run(
 		"JWT header mismatch azp",
 		func(t *testing.T) {
 			ca := OpenIDCAuth{}
@@ -243,6 +256,7 @@ func TestAuthenticate(t *testing.T) {
 			config.Set("oidc_base_url", "accounts.example.org")
 			config.Set("oidc_realm", "gsh")
 			config.Set("oidc_claim", "Email")
+			config.Set("oidc_claim_name", "email")
 
 			_, err := ca.Authenticate(ctx, *config)
 			if err != nil {
@@ -261,8 +275,8 @@ func TestAuthenticate(t *testing.T) {
 		func(t *testing.T) {
 			ca := OpenIDCAuth{}
 			ctx.SetRequest(&http.Request{
-				// {"exp":99999999999,"aud":["gsh"],"azp":"gsh","iss":"accounts.example.org/gsh","email":"gsh@accounts.example.org","JTI":"jti-value"}
-				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCIsImlzcyI6ImFjY291bnRzLmV4YW1wbGUub3JnL2dzaCIsImVtYWlsIjoiZ3NoQGFjY291bnRzLmV4YW1wbGUub3JnIiwiSlRJIjoianRpLXZhbHVlIn0.rejbVdi0yXtyjfZJ_x8c8zkyjHFENWZHGv3L12EWrHKhDtc3Si4BZlI7s8jP738i0KocT8eg3KmjRjbOcLVNS67wK80kdAkynxlCYZ7YdOzFp1UXphWoarTSgWG31sOv2dV2yWtnqDGnoMhwamk86E0L2t5uIHXVY02K5tibKXkXqDwts9TJbin3-zADPw391RuNJqvNi95bRzIj6MdReTVtlLPUlrqGkr2famaCOt-svuAIisRgPjzAkOalvoV7n9sAmR0l39_qM8QWG1BxY1EzbfAYUidCeitQNpGHsTZi34htd6i_e3G9IQHwItp0sJzmDEJXHAPiLuLF2k2t4w"}},
+				// {"exp":99999999999,"aud":["gsh"],"azp":"gsh","iss":"accounts.example.org/gsh","email":"gsh@accounts.example.org","jti":"jti-value"}
+				Header: http.Header{"Authorization": []string{"JWT eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTk5LCJhdWQiOlsiZ3NoIl0sImF6cCI6ImdzaCIsImlzcyI6ImFjY291bnRzLmV4YW1wbGUub3JnL2dzaCIsImVtYWlsIjoiZ3NoQGFjY291bnRzLmV4YW1wbGUub3JnIiwianRpIjoianRpLXZhbHVlIn0.qgR5_l1dgw32w9F9UCoWdCAc64ykHz4EDWT9U-CX25fTvSuSsmO_jvglfABQZXBHi1PdwQCdJWQ0bQ1STDADyEjIQJEZwgF7gTWf7KDUO0dDibWM3Ac9PHIlhrEYJ-N2bDyNxz0FVQY3pjD3g-w2Qy_AWFhmuX4d3ElgIq6qmqPnK91fwXcojxaeEwiNT5H5RoEYWCbaOmiDexA-xmwuHpEqPul3O0k0WFqYff1SOCxmDh-e4qgM60VB3GUC2AW06B8IQLF3sYamHf1i01D9I48E5Jgd9c533Bz0uyWtC0XqCukoRn0iQEjLPcoCLvV9xkLl1NX7rlYbATU4ocfM_A"}},
 			})
 			config.Set("oidc_audience", "gsh")
 			config.Set("oidc_authorized_party", "gsh")
@@ -282,6 +296,7 @@ func TestAuthenticate(t *testing.T) {
 			config.Set("oidc_base_url", "accounts.example.org")
 			config.Set("oidc_realm", "gsh")
 			config.Set("oidc_claim", "Email")
+			config.Set("oidc_claim_name", "email")
 
 			_, err := ca.Authenticate(ctx, *config)
 			if err != nil {
