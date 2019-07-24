@@ -4,39 +4,23 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"reflect"
 	"strings"
 
+	"github.com/globocom/gsh/api/auth"
 	"github.com/globocom/gsh/types"
 
 	"github.com/gosimple/slug"
 	"github.com/labstack/echo"
 )
 
-// getField returns the value of a field in a token or error if the field doesn't exist
-func getField(token *IDToken, field string) (string, error) {
-	r := reflect.ValueOf(token)
-	f := reflect.Indirect(r).FieldByName(field)
-	result := f.String()
-	if result == "<invalid Value>" {
-		return "", fmt.Errorf("getField: Field (%s) not found at IDToken", field)
-	}
-	return result, nil
-}
-
 // GetRolesForMe prints all the existing roles to current user
 func (h AppHandler) GetRolesForMe(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
-	}
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
 	}
 
 	// permissions := h.permEnforcer.GetPolicy()
@@ -69,17 +53,14 @@ func (h AppHandler) GetRolesForMe(c echo.Context) error {
 // GetRoles prints all the existing roles
 func (h AppHandler) GetRoles(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
+
+	// Validates if the user getting the roles has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{
@@ -112,19 +93,14 @@ func (h AppHandler) GetRoles(c echo.Context) error {
 // AddRoles adds a new role
 func (h AppHandler) AddRoles(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
 	// Validates if the user creating the role has permission to do so
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't create roles"})
@@ -209,19 +185,14 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 // RemoveRole removes an existent role
 func (h AppHandler) RemoveRole(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
 	// Validates if the user deleting the role has permission to do so
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't delete roles"})
@@ -273,19 +244,14 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 // AssociateRoleToUser associates a role to a specific user
 func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
 	// Validates if the user associating the role has permission to do so
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't associate role to an user"})
@@ -325,17 +291,14 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 // GetRolesByUser prints all the existing roles to specific user
 func (h AppHandler) GetRolesByUser(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
+
+	// Validates if the user associating the role has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
@@ -373,19 +336,14 @@ func (h AppHandler) GetRolesByUser(c echo.Context) error {
 // DisassociateRoleToUser disassociates a role to a specific user
 func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
 
 	// Validates if the user disassociating the role has permission to do so
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't disassociate role to an user"})
@@ -425,17 +383,14 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 // GetUsersWithRole prints all associated users to specific role
 func (h AppHandler) GetUsersWithRole(c echo.Context) error {
 	// Validates JWT token before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
 			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
 	}
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
+
+	// Validates if the user getting info has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
 			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
