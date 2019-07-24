@@ -23,10 +23,10 @@ PROJECT := GSH
 get-test-deps:
 	$(GO) get -u github.com/golang/dep/cmd/dep
 	$(GO) get -u golang.org/x/lint/golint
-	$(GO) get -u github.com/securego/gosec/cmd/gosec
 
 ## Runs a security static analysis using Gosec
 check-sec:
+	$(GO) get -u github.com/securego/gosec/cmd/gosec
 	$(GOSEC) ./... 2> /dev/null
 
 ## Runs lint
@@ -34,7 +34,7 @@ lint:
 	$(GOLINT) $(shell $(GO) list ./...)
 
 ## Perfoms all make tests
-test: get-test-deps lint check-sec
+test: get-test-deps lint
 
 ## Prints help message
 help:
