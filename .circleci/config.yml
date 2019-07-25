@@ -11,3 +11,4 @@ jobs:
       - checkout
       - run: make test
       - run: make check-sec
+      - run: $GOPATH/bin/goveralls -coverprofile=c.out -service=circle-ci -repotoken=$COVERALLS_TOKEN

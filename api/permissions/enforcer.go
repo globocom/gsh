@@ -5,8 +5,8 @@ import (
 	"net"
 	"strings"
 
-	gormadapter "github.com/Krlier/gorm-adapter"
 	"github.com/casbin/casbin"
+	gormadapter "github.com/casbin/gorm-adapter"
 	"github.com/spf13/viper"
 )
 
