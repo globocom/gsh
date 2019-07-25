@@ -93,3 +93,7 @@ compact:
 coverage:
 	$(GO) test ./... -coverprofile=c.out
 	$(GO) tool cover -html=c.out -o coverage.html
+
+## build rpm for agent at dist folder
+rpm:
+	docker run -e VERSION=$(git describe) --rm -v $PWD:/tmp/pkg goreleaser/nfpm pkg --config /tmp/pkg/gsh-agent.fpm.yml --target /tmp/pkg/dist/gsh-agent.rpm

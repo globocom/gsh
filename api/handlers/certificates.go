@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/globocom/gsh/api/auth"
 	"github.com/globocom/gsh/types"
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo"
@@ -89,21 +90,13 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	}
 
 	// Validating JWT before any other action
-	token, err := ValidateJWT(c, h.config)
+	ca := auth.OpenIDCAuth{}
+	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
-			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Authentication failed", "details": err.Error()})
 	}
-	field := h.config.GetString("oidc_claim")
-	username, err := getField(&token, field)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "The field declared in oidc_claim doesn't exist", "details": err.Error()})
-	}
-	jti, err := getField(&token, "JTI")
-	if err != nil {
-		jti = ""
-	}
+	jti := c.Get("JTI").(string)
 
 	// Get user roles
 	err = h.permEnforcer.LoadPolicy()

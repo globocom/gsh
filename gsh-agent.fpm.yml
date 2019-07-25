@@ -1,0 +1,22 @@
+# nfpm example config file
+name: "gsh-agent"
+arch: "amd64"
+platform: "linux"
+version: "v${VERSION}"
+section: "default"
+priority: "extra"
+provides:
+- gsh-agent
+depends:
+- openssh-server
+maintainer: "CSIRT Globo.com <csirt@csirt.globo>"
+description: |
+  GSH Agent is responsible for confirming the mapping performed on the server-side certificate.
+  It runs every time a certificate authentication is performed on the OpenSSH server and queries the GSH API to confirm the operation.
+vendor: "globo.com"
+homepage: "https://github.com/globocom/gsh"
+license: "MIT"
+bindir: "/usr/local/bin"
+files:
+  /tmp/pkg/dist/linux/amd64/gsh-agent: "/usr/local/bin/gsh-agent"
+  /tmp/pkg/dist/cas.pub: "/etc/ssh/cas.pub"

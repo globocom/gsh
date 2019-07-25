@@ -1,5 +1,7 @@
 # gsh
 
+[![CircleCI](https://circleci.com/gh/globocom/gsh.svg?style=svg)](https://circleci.com/gh/globocom/gsh) [![Coverage Status](https://coveralls.io/repos/github/globocom/gsh/badge.svg?branch=master)](https://coveralls.io/github/globocom/gsh?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/globocom/gsh)](https://goreportcard.com/report/github.com/globocom/gsh)
+
 GSH is an OpenID Connect-compatible authentication system for systems using OpenSSH servers consisting of an out-of-box binary set.
 Its use requires only a few configurations in the `sshd_config` file, allowing for a staged migration of an infrastructure based on PAM authentication (LDAP/AD/Kerberos/etc) to an authentication structure with OpenID Connect and SSH certificates.
 
