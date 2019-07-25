@@ -87,5 +87,5 @@ compact:
 
 ## Run tests with code coverage
 coverage:
-    $(GO) test ./... -coverprofile=c.out
-    $(GO) tool cover -html=c.out -o coverage.html
+	$(GO) test ./... -coverprofile=c.out
+	$(GO) tool cover -html=c.out -o coverage.html
