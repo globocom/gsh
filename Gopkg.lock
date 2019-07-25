@@ -18,14 +18,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e31806ff98be45276d8cb3728d9a04613fb2522a4082f079fec927ce0aa9d30f"
-  name = "github.com/Krlier/gorm-adapter"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5f0f4b5ecad7f5259de033c2765c1e9399b23034"
-
-[[projects]]
-  branch = "master"
   digest = "1:d73d422b7f34d8e930d6d9c3ae6ce5c8f4a2c77e1ea43f7f127a5cd084e32ccb"
   name = "github.com/aulanov/go.dbus"
   packages = ["."]
@@ -50,6 +42,14 @@
   pruneopts = "UT"
   revision = "4aa316fb68d44d4cc5ddd98d7e9ec80bc0a8b081"
   version = "v1.8.1"
+
+[[projects]]
+  digest = "1:0acc9ca25e9253bb09c4fbfde6ee3dff54e92a2f8cf9f2dbfdb6b16e2f73c4a7"
+  name = "github.com/casbin/gorm-adapter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9d922cc6a7c5c95291c1b9d8eaba3a075f3f6f2e"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
@@ -554,8 +554,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/99designs/keyring",
-    "github.com/Krlier/gorm-adapter",
     "github.com/casbin/casbin",
+    "github.com/casbin/gorm-adapter",
     "github.com/coreos/go-oidc",
     "github.com/gofrs/uuid",
     "github.com/gorilla/sessions",
