@@ -109,7 +109,11 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 		Timeout: time.Duration(10) * time.Second,
 	}
 	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
-	req, _ := http.NewRequest("GET", keyURL, nil)
+	req, err := http.NewRequest("GET", keyURL, nil)
+	if err != nil {
+		return fmt.Errorf("getSignatureKeys: Failed to generate request (%v)", err)
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
