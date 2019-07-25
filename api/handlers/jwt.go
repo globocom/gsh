@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -271,4 +272,15 @@ func GetClaim(jwt string, claim string) (string, error) {
 	}
 
 	return field, nil
+}
+
+// getField returns the value of a field in a token or error if the field doesn't exist
+func getField(token *IDToken, field string) (string, error) {
+	r := reflect.ValueOf(token)
+	f := reflect.Indirect(r).FieldByName(field)
+	result := f.String()
+	if result == "<invalid Value>" {
+		return "", fmt.Errorf("getField: Field (%s) not found at IDToken", field)
+	}
+	return result, nil
 }
