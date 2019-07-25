@@ -94,7 +94,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 	username, err := ca.Authenticate(c, h.config)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized,
-			map[string]string{"result": "fail", "message": "Failed validating JWT", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Authentication failed", "details": err.Error()})
 	}
 	jti := c.Get("JTI").(string)
 
