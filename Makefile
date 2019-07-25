@@ -19,6 +19,10 @@ COLOR_RED = \033[31m
 
 PROJECT := GSH
 
+## Checks depencies of the project
+check-deps:
+	$(GODEP) ensure -v
+
 ## Gets all go test dependencies
 get-test-deps:
 	$(GO) get -u github.com/golang/dep/cmd/dep
@@ -35,7 +39,7 @@ lint:
 	$(GOLINT) $(shell $(GO) list ./...)
 
 ## Perfoms all make tests
-test: get-test-deps lint coverage
+test: get-test-deps check-deps lint coverage
 
 ## Prints help message
 help:
