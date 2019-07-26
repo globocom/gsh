@@ -48,10 +48,10 @@ import (
 // roleDissociateCmd represents the roleDissociate command
 var roleDissociateCmd = &cobra.Command{
 	Use:   "role-dissociate [role] [user]",
-	Short: "Dissociate a role to an user",
+	Short: "Dissociate a role to a user",
 	Long: `
 
-Dissociate a role to an user at GSH API.
+Dissociate a role to a user at GSH API.
 	`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {

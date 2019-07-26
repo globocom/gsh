@@ -45,7 +45,7 @@ var targetAddCmd = &cobra.Command{
 	Short: "Adds a new entry to the list of available targets",
 	Long: `
 
-Adds a new entry to the list of available targets
+Adds a new entry to the list of available targets.
 
 	`,
 	Args: cobra.ExactArgs(2),
@@ -53,7 +53,7 @@ Adds a new entry to the list of available targets
 
 		match, _ := regexp.MatchString(`^\w+$`, args[0])
 		if !match {
-			fmt.Printf("Client error parsing target name: %s (must be number, letters and underscores)\n", args[0])
+			fmt.Printf("Client error parsing target name: %s (must have number, letters and/or underscores)\n", args[0])
 			os.Exit(1)
 		}
 

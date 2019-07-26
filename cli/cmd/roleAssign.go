@@ -48,10 +48,10 @@ import (
 // roleAssignCmd represents the roleAssign command
 var roleAssignCmd = &cobra.Command{
 	Use:   "role-assign [role] [user]",
-	Short: "Associate a role to an user",
+	Short: "Associate a role to a user",
 	Long: `
 
-Assign a previous created role to an user.
+Assign a previous created role to a user.
 	`,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -62,7 +62,7 @@ Assign a previous created role to an user.
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
-			fmt.Printf("Client error parsing id, it's a slug string?: (%v)\n", args[0])
+			fmt.Printf("Client error parsing id, is it a slug string?: (%v)\n", args[0])
 			os.Exit(1)
 		}
 

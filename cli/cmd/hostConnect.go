@@ -59,9 +59,9 @@ import (
 var hostConnectCmd = &cobra.Command{
 	Use:     "host-connect",
 	Aliases: []string{"h", "c"},
-	Short:   "Opens a remote shell inside host, using SSH certificates",
-	Long: `Opens a remote shell inside host, using SSH certificates. You
-can access an host just giving DNS name, or specifying the IP of the host.
+	Short:   "Opens a remote shell inside a host, using SSH certificates",
+	Long: `Opens a remote shell inside a host, using SSH certificates. You
+can access a host just giving a DNS name or specifying the IP of the host.
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -246,7 +246,7 @@ can access an host just giving DNS name, or specifying the IP of the host.
 		// Write files
 		keyFile, certFile, err := files.WriteKeys(keys.SSHPrivateKey, certResponse.Certificate)
 		if err != nil {
-			fmt.Printf("Client error write certificate files: (%s)\n", err.Error())
+			fmt.Printf("Client error writing certificate files: (%s)\n", err.Error())
 			os.Exit(1)
 		}
 
@@ -297,8 +297,8 @@ func init() {
 	// is called directly, e.g.:
 	// hostConnectCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	hostConnectCmd.Flags().StringP("key-type", "t", "rsa", "Defines type of auto generated ssh key pair (rsa)")
-	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user used on remote host")
-	hostConnectCmd.Flags().StringP("source", "s", "local ip address", "Defines user IP used as source to remote host")
-	hostConnectCmd.Flags().StringP("port", "p", "22", "Defines destination port used to connect remote host")
+	hostConnectCmd.Flags().StringP("username", "u", "from OIDC token", "Defines remote user to connect on remote host")
+	hostConnectCmd.Flags().StringP("source", "s", "local ip address", "Defines user IP used as source to connect on remote host")
+	hostConnectCmd.Flags().StringP("port", "p", "22", "Defines destination port used to connect on remote host")
 	hostConnectCmd.Flags().BoolP("dry", "d", false, "Does not connect to the remote host using SSH, just prints the command to be executed")
 }

@@ -39,7 +39,7 @@ var checkPermissionCmd = &cobra.Command{
 	Use:   "check-permission",
 	Short: "Check permissions from a new ssh authentication",
 	Long: `
- Check permissions from a new ssh authentication, if one check fails it will deny the authentication.
+ Check permissions from a new ssh authentication. If one check fails it will deny the authentication.
  	`,
 	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {

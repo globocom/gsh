@@ -42,7 +42,7 @@ var targetListCmd = &cobra.Command{
 	Short: "Displays the list of targets, marking the current",
 	Long: `
 
-Displays the list of targets, marking the current
+Displays the list of targets, marking the current.
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {

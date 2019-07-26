@@ -43,7 +43,7 @@ var targetSetCmd = &cobra.Command{
 	Short: "Change current target (gsh api)",
 	Long: `
 
-Change current target (gsh api)
+Change current target (gsh api).
 
 	`,
 	Args: cobra.ExactArgs(1),
@@ -67,7 +67,7 @@ Change current target (gsh api)
 			}
 		}
 		if notUsed {
-			fmt.Printf("Client error, target do not exists: %s\n", args[0])
+			fmt.Printf("Client error, target does not exist: %s\n", args[0])
 			os.Exit(1)
 		}
 

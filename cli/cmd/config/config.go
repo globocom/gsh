@@ -72,7 +72,7 @@ func GetCurrentTarget() *types.Target {
 
 				// check token storage
 				if target["token-storage"] == nil {
-					fmt.Printf("Token storage is not set. You can set using -s flag at 'gsh login' command\n")
+					fmt.Printf("Token storage is not set. You can set it using the -s flag at 'gsh login' command\n")
 					currentTarget.TokenStorage = ""
 				} else {
 					currentTarget.TokenStorage = target["token-storage"].(string)

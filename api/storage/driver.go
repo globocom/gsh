@@ -40,7 +40,7 @@ func Init(config viper.Viper) (*gorm.DB, error) {
 		// disabling NO_ZERO_DATE mode
 		_, err = db.DB().Exec("SET SESSION sql_mode = 'ONLY_FULL_GROUP_BY,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';")
 		if err != nil {
-			return nil, errors.New("Storage driver: mysql: error seting sql_mode (" + err.Error() + ")")
+			return nil, errors.New("Storage driver: mysql: error setting sql_mode (" + err.Error() + ")")
 		}
 		db.DB().SetMaxOpenConns(config.GetInt("storage_max_connections"))
 		db.AutoMigrate(

@@ -74,11 +74,11 @@ func (v *Vault) GetToken() error {
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.New("Failed to autenticate with vault: " + err.Error())
+		return errors.New("Failed to authenticate with vault: " + err.Error())
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Failed to auhenticate with vault: status code " + strconv.Itoa(resp.StatusCode))
+		return errors.New("Failed to authenticate with vault: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	authResponse := authResponse{}
 	decoder := json.NewDecoder(resp.Body)
@@ -97,7 +97,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	// get new vault client token
 	err := v.GetToken()
 	if err != nil {
-		return "", errors.New("Failed to get vault token (" + err.Error() + ")")
+		return "", errors.New("Failed to get Vault token (" + err.Error() + ")")
 	}
 
 	// set Vault data struct for sign
@@ -116,11 +116,11 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", errors.New("Failed to sign ssh certificate")
+		return "", errors.New("Failed to sign SSH certificate")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("Failed to sign ssh certificate, not 200 ok")
+		return "", errors.New("Failed to sign SSH certificate, not 200 ok")
 	}
 
 	// parse Vault response
@@ -128,7 +128,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&sshCertificate)
 	if err != nil {
-		return "", errors.New("Failed to decode ssh certificate (" + err.Error() + ")")
+		return "", errors.New("Failed to decode SSH certificate (" + err.Error() + ")")
 	}
 
 	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
@@ -142,7 +142,7 @@ func (v *Vault) GetExternalPublicKey() (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("External CA did not answer correctly: status code " + strconv.Itoa(resp.StatusCode))
+		return "", errors.New("External CA did not respond correctly: status code " + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

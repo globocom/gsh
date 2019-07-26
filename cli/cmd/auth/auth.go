@@ -168,13 +168,13 @@ func StorageTokens(targetLabel string, token oauth2.Token) error {
 		LibSecretCollectionName: "gsh",
 	})
 	if err != nil {
-		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
+		fmt.Printf("Client error opening token-storage: (%s)\n", err.Error())
 		return err
 	}
 
 	oauth2TokenJSON, err := json.Marshal(token)
 	if err != nil {
-		fmt.Printf("Client error marshall oauth2 tokens: (%s)\n", err.Error())
+		fmt.Printf("Client error marshalling oauth2 tokens: (%s)\n", err.Error())
 		return err
 	}
 
@@ -214,7 +214,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 		LibSecretCollectionName: "gsh",
 	})
 	if err != nil {
-		fmt.Printf("Client error open token-storage: (%s)\n", err.Error())
+		fmt.Printf("Client error opening token-storage: (%s)\n", err.Error())
 		return nil, err
 	}
 
@@ -226,7 +226,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 
 	token := new(oauth2.Token)
 	if err := json.Unmarshal(tokenKeyItem.Data, &token); err != nil {
-		fmt.Printf("Client error unmarshal token stored: (%s)\n", err.Error())
+		fmt.Printf("Client error unmarshalling stored token: (%s)\n", err.Error())
 		return nil, err
 	}
 

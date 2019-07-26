@@ -58,7 +58,7 @@ var loginCmd = &cobra.Command{
 	Short: "Initiates a new gsh session for a user",
 	Long: `
 
-Initiates a new gsh session for a user. How authentication uses OpenID
+Initiates a new gsh session for a user. Since authentication uses OpenID
 Connect, it will open a web browser for the user to complete the login.
 
 All gsh actions require the user to be authenticated (except [[gsh login]],
@@ -79,7 +79,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 
 			// config file not set or first time using this target, forcing user to set one
 			if setStorageCheck == nil {
-				fmt.Printf("Client error: available backends for token-storage %v\n", keyring.AvailableBackends())
+				fmt.Printf("Client error checking available backends for token-storage %v\n", keyring.AvailableBackends())
 				os.Exit(1)
 			}
 			setStorage = setStorageCheck.(string)
@@ -98,7 +98,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 				}
 			}
 			if match == false {
-				fmt.Printf("Client error validating set-token-storage option (%s), only available: (%v)\n", setStorage, keyring.AvailableBackends())
+				fmt.Printf("Client error validating set-token-storage option (%s), option available: (%v)\n", setStorage, keyring.AvailableBackends())
 				os.Exit(1)
 			}
 		}
@@ -162,13 +162,13 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 		finish := make(chan bool)
 		l, err := net.Listen("tcp", "127.0.0.1:")
 		if err != nil {
-			fmt.Printf("GSH client can not start localhost server: %s\n", err.Error())
+			fmt.Printf("GSH client cannot start localhost server: %s\n", err.Error())
 			os.Exit(1)
 		}
 		// Get random port on localserver
 		_, port, err := net.SplitHostPort(l.Addr().String())
 		if err != nil {
-			fmt.Printf("GSH client can not get localhost port: %s\n", err.Error())
+			fmt.Printf("GSH client cannot get localhost port: %s\n", err.Error())
 			os.Exit(1)
 		}
 		redirectURL := fmt.Sprintf("http://localhost:%s", port)
@@ -184,7 +184,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 		state := random.String(32)
 		codeVerifier, codeChallenge, err := auth.PKCEgenerator()
 		if err != nil {
-			fmt.Printf("GSH client can not generate PKCE chalenge: %s\n", err.Error())
+			fmt.Printf("GSH client cannot generate PKCE challenge: %s\n", err.Error())
 			os.Exit(1)
 		}
 
