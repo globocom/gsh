@@ -194,7 +194,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 	var storage []keyring.BackendType
 	storageConfig := viper.GetString("targets." + currentTarget.Label + ".token-storage")
 	storage = append(storage, keyring.BackendType(storageConfig))
-	ring, err := keyring.Open(keyring.Config{Mas 
+	ring, err := keyring.Open(keyring.Config{
 		// Configuration for keychain
 		AllowedBackends: storage,
 		ServiceName:     "gsh",
