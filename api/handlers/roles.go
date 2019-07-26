@@ -110,7 +110,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	requestPolicy := new(types.Role)
 	if err = c.Bind(requestPolicy); err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Failed creating new role", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Fail creating new role", "details": err.Error()})
 	}
 	// Checks for role ID
 	if requestPolicy.ID == "" {
@@ -138,7 +138,7 @@ func (h AppHandler) AddRoles(c echo.Context) error {
 	}
 	if roleFound {
 		return c.JSON(http.StatusBadRequest,
-			map[string]string{"result": "fail", "message": "RoleID alread exists"})
+			map[string]string{"result": "fail", "message": "RoleID already exists"})
 	}
 
 	// Validates if the IPs read are in a valid format
@@ -231,7 +231,7 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 	check, err := h.permEnforcer.RemovePolicySafe(removeRole.ID, removeRole.RemoteUser, removeRole.SourceIP, removeRole.TargetIP, removeRole.Actions)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError,
-			map[string]string{"result": "fail", "message": "Role can not be removed", "details": err.Error()})
+			map[string]string{"result": "fail", "message": "Role cannot be removed", "details": err.Error()})
 	}
 	if err == nil && check == false {
 		return c.JSON(http.StatusNotFound,
@@ -254,7 +254,7 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 	// Validates if the user associating the role has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't associate role to an user"})
+			map[string]string{"result": "fail", "message": "This user can't associate role to a user"})
 	}
 
 	roleID := c.Param("role")
@@ -346,7 +346,7 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 	// Validates if the user disassociating the role has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't disassociate role to an user"})
+			map[string]string{"result": "fail", "message": "This user can't disassociate role to a user"})
 	}
 
 	roleID := c.Param("role")
@@ -377,7 +377,7 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 		fmt.Printf("User (%s) don't have this role (%s)\n", user, roleID)
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role disassociated"})
+	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role dissociated"})
 }
 
 // GetUsersWithRole prints all associated users to specific role
@@ -393,7 +393,7 @@ func (h AppHandler) GetUsersWithRole(c echo.Context) error {
 	// Validates if the user getting info has permission to do so
 	if !contains(h.config.GetStringSlice("perm_admin"), username) {
 		return c.JSON(http.StatusForbidden,
-			map[string]string{"result": "fail", "message": "This user can't list roles to anothers user"})
+			map[string]string{"result": "fail", "message": "This user can't list roles from another users"})
 	}
 
 	role := c.Param("role")
