@@ -48,7 +48,7 @@ import (
 // roleListCmd represents the roleList command
 var roleListCmd = &cobra.Command{
 	Use:   "role-list [user]",
-	Short: "List all rules",
+	Short: "List all roles",
 	Long: `
 
 List all roles at GSH API. If user is informed, this command list roles of informed user.
