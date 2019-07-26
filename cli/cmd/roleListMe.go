@@ -51,7 +51,7 @@ var roleSelfCmd = &cobra.Command{
 	Short: "List all roles for current user",
 	Long: `
 
-List all roles for current user at  GSH API.
+List all roles for current user at GSH API.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target

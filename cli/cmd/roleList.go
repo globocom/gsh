@@ -51,7 +51,7 @@ var roleListCmd = &cobra.Command{
 	Short: "List all roles",
 	Long: `
 
-List all roles at GSH API. If user is informed, this command list roles of informed user.
+List all roles at GSH API. If a user is informed, this command list roles of informed user.
 	`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

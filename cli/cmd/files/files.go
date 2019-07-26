@@ -101,7 +101,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	}
 	err = os.Chmod(keyFileLocation, 0600)
 	if err != nil {
-		return "", "", errors.New("File error chmod keyfile (" + err.Error() + ")")
+		return "", "", errors.New("File error trying to chmod keyfile (" + err.Error() + ")")
 	}
 	err = keyFile.Close()
 	if err != nil {

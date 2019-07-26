@@ -54,8 +54,8 @@ var roleAddCmd = &cobra.Command{
 	Short: "Adds a new role",
 	Long: `
 
-Adds a new role. A role is a set of characteristics that composes a permission 
-that will be assigned to a user. ID is a slug string thats identifies the role.
+Adds a new role. A role is a set of characteristics that consists of a permission 
+that will be assigned to a user. ID is a slug string that identifies the role.
 
 `,
 	Args: cobra.ExactArgs(1),
@@ -67,13 +67,13 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
-			fmt.Printf("Client error parsing id, it's a slug string?: (%v)\n", args[0])
+			fmt.Printf("Client error parsing id, is it a slug string?: (%v)\n", args[0])
 			os.Exit(1)
 		}
 
 		// Get remote user
 		if !cmd.Flags().Changed("remote-user") {
-			fmt.Printf("Client error: remote-user can be defined (--remote-user)\n")
+			fmt.Printf("Client error: remote-user can be defined using (--remote-user)\n")
 			os.Exit(1)
 		}
 		remoteUser, err := cmd.Flags().GetString("remote-user")
@@ -84,7 +84,7 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 
 		// Get user IP
 		if !cmd.Flags().Changed("user-ip") {
-			fmt.Printf("Client error: user-ip can be defined (--user-ip)\n")
+			fmt.Printf("Client error: user-ip can be defined using (--user-ip)\n")
 			os.Exit(1)
 		}
 		userIP, err := cmd.Flags().GetString("user-ip")
@@ -105,7 +105,7 @@ that will be assigned to a user. ID is a slug string thats identifies the role.
 
 		// Get remote host
 		if !cmd.Flags().Changed("remote-host") {
-			fmt.Printf("Client error: remote-host can be defined (--remote-host)\n")
+			fmt.Printf("Client error: remote-host can be defined using (--remote-host)\n")
 			os.Exit(1)
 		}
 		remoteHost, err := cmd.Flags().GetString("remote-host")
@@ -216,8 +216,8 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// roleAddCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	roleAddCmd.Flags().StringP("remote-user", "u", ".", "Defines username that certificate holder should impersonate on the remote system. Examples: '*' (any user), '.' (same user used at request) or 'alice' (or other string for only impersonate Alice)")
+	roleAddCmd.Flags().StringP("remote-user", "u", ".", "Defines the username that certificate holder should impersonate on the remote system. Examples: '*' (any user), '.' (same user used at request) or 'alice' (or other string to only impersonate said user)")
 	roleAddCmd.Flags().StringP("user-ip", "s", "", "Defines source IP which will be allowed to initiate a connection to remote-host using this role")
-	roleAddCmd.Flags().StringP("remote-host", "d", "", "Defines destination IP which will be able to be connected using this role")
-	roleAddCmd.Flags().StringP("actions", "a", "permit-pty", "Defines a set of OpenSSH critical options which will be able to be used with this role")
+	roleAddCmd.Flags().StringP("remote-host", "d", "", "Defines destination IP to be connected using this role")
+	roleAddCmd.Flags().StringP("actions", "a", "permit-pty", "Defines a set of OpenSSH critical options to be used with this role")
 }

@@ -61,7 +61,7 @@ var roleRemoveCmd = &cobra.Command{
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
-			fmt.Printf("Client error parsing id, it's a slug string?: (%v)\n", args[0])
+			fmt.Printf("Client error parsing id, is it a slug string?: (%v)\n", args[0])
 			os.Exit(1)
 		}
 

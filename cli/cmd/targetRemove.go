@@ -43,7 +43,7 @@ var targetRemoveCmd = &cobra.Command{
 	Short: "Remove a target from target-list (gsh api)",
 	Long: `
 
-	Remove a target from target-list (gsh api)
+	Remove a target from target-list (gsh api).
 
 	`,
 	Args: cobra.ExactArgs(1),
@@ -58,7 +58,7 @@ var targetRemoveCmd = &cobra.Command{
 			}
 		}
 		if notUsed {
-			fmt.Printf("Error, target do not exists: %s\n", args[0])
+			fmt.Printf("Error, target does not exist: %s\n", args[0])
 			os.Exit(1)
 		}
 

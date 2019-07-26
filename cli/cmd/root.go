@@ -119,7 +119,7 @@ func initConfig() {
 				fmt.Printf("Client error closing config file: %s (%s)\n", configFile, err.Error())
 				os.Exit(1)
 			}
-			fmt.Printf("Client create new config file: %s\n", configFile)
+			fmt.Printf("Client created new config file: %s\n", configFile)
 		}
 	}
 
