@@ -100,6 +100,10 @@ func Check(config viper.Viper) error {
 		fmt.Println("OIDC claim (oidc_claim) not set")
 		fails++
 	}
+	if len(config.GetString("oidc_claim_name")) == 0 {
+		fmt.Println("OIDC claim name (oidc_claim_name) not set")
+		fails++
+	}
 
 	// Check for admins
 	if len(config.GetStringSlice("perm_admin")) == 0 {
