@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -220,8 +221,10 @@ func checkInterfaces(remoteHost string) bool {
 		return false
 	}
 	for _, addr := range ifacesAddrs {
-		_, ifaceNetAddr, _ := net.ParseCIDR(addr.String())
-		if ifaceNetAddr.Contains(remoteIP) {
+
+		dataIP := strings.SplitN(addr.String(), "/", 2)
+		localIP := net.ParseIP(dataIP[0])
+		if localIP.Equal(remoteIP) {
 			return true
 		}
 	}
