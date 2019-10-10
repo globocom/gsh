@@ -73,7 +73,7 @@ func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, 
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
 	}
-	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
+	issuer := config.GetString("oidc_issuer")
 	err = ca.verifyIssuer(token, issuer)
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
@@ -108,7 +108,7 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
+	keyURL := config.GetString("oidc_certs")
 	req, err := http.NewRequest("GET", keyURL, nil)
 	if err != nil {
 		return fmt.Errorf("getSignatureKeys: Failed to generate request (%v)", err)

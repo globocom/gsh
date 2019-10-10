@@ -24,5 +24,7 @@ func (h AppHandler) StatusConfig(c echo.Context) error {
 		"oidc_audience":   h.config.GetString("oidc_audience"),
 		"oidc_claim":      h.config.GetString("oidc_claim"),
 		"oidc_claim_name": h.config.GetString("oidc_claim_name"),
+		"oidc_issuer":     h.config.GetString("oidc_issuer"),
+		"oidc_certs":      h.config.GetString("oidc_certs"),
 	})
 }

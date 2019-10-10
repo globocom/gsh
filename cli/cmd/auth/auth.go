@@ -262,6 +262,8 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 		BaseURL  string `json:"oidc_base_url"`
 		Realm    string `json:"oidc_realm"`
 		Audience string `json:"oidc_audience"`
+		Issuer   string `json:"oidc_issuer"`
+		Certs    string `json:"oidc_certs"`
 	}
 	configResponse := new(ConfigResponse)
 	if err := json.Unmarshal(body, &configResponse); err != nil {
@@ -270,7 +272,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 	}
 
 	ctx := context.Background()
-	oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
+	oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL)
 	if err != nil {
 		fmt.Printf("GSH client setting OIDC provider error: %s\n", err.Error())
 		os.Exit(1)
