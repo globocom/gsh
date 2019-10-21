@@ -181,7 +181,7 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 
 		// Generate our key_id for the certificate
 		// TODO: verify to log user thats requested certificate (not RemoteUser)
-		certRequest.KeyID = fmt.Sprintf("user[%s] from[%s] command[%s] sshKey[%s] ca[%s] valid to[%s]", certRequest.RemoteUser, certRequest.UserIP, certRequest.Command, userFingerprint, []byte(certRequest.CAFingerprint), certRequest.ValidBefore.Format(time.RFC3339))
+		certRequest.KeyID = uuid.Must(uuid.NewV4()).String()
 	}
 
 	// Get/update our ssh cert serial number
