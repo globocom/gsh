@@ -81,7 +81,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 		Dial: (&net.Dialer{
 			Timeout: 10 * time.Second,
 		}).Dial,
-		TLSHandshakeTimeout: time.Second,
+		TLSHandshakeTimeout: 10 * time.Second,
 	}
 	var netClient = &http.Client{
 		Timeout:   10 * time.Second,
