@@ -202,7 +202,7 @@ can access a host just giving a DNS name or specifying the IP of the host.
 			Dial: (&net.Dialer{
 				Timeout: 10 * time.Second,
 			}).Dial,
-			TLSHandshakeTimeout: time.Second,
+			TLSHandshakeTimeout: 10 * time.Second,
 		}
 		var netClient = &http.Client{
 			Timeout:   10 * time.Second,

@@ -140,9 +140,12 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			os.Exit(1)
 		}
 		type ConfigResponse struct {
-			BaseURL  string `json:"oidc_base_url"`
-			Realm    string `json:"oidc_realm"`
-			Audience string `json:"oidc_audience"`
+			BaseURL      string `json:"oidc_base_url"`
+			Realm        string `json:"oidc_realm"`
+			Audience     string `json:"oidc_audience"`
+			Issuer       string `json:"oidc_issuer"`
+			Certs        string `json:"oidc_certs"`
+			CallbackPort string `json:"oidc_callback_port"`
 		}
 		configResponse := new(ConfigResponse)
 		if err := json.Unmarshal(body, &configResponse); err != nil {
@@ -152,7 +155,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 
 		// Configure an OpenID Connect aware OAuth2 client.
 		ctx := context.Background()
-		oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL+"/"+configResponse.Realm)
+		oauth2provider, err := oidc.NewProvider(ctx, configResponse.Issuer)
 		if err != nil {
 			fmt.Printf("GSH client setting OIDC provider error: %s\n", err.Error())
 			os.Exit(1)
@@ -160,7 +163,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 
 		// Setup localserver with random port
 		finish := make(chan bool)
-		l, err := net.Listen("tcp", "127.0.0.1:")
+		l, err := net.Listen("tcp", "127.0.0.1:"+configResponse.CallbackPort)
 		if err != nil {
 			fmt.Printf("GSH client cannot start localhost server: %s\n", err.Error())
 			os.Exit(1)
@@ -177,7 +180,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			ClientID:    configResponse.Audience,
 			RedirectURL: redirectURL,
 			Endpoint:    oauth2provider.Endpoint(),
-			Scopes:      []string{oidc.ScopeOpenID},
+			Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "email", "profile"},
 		}
 
 		// Generate radom state and PKCE codes

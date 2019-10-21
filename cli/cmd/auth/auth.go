@@ -104,6 +104,7 @@ func Callback(state string, codeVerifier string, redirectURL string, oauth2confi
 				page = fmt.Sprintf(callbackPage, successMarkup)
 
 				// Storing tokens on current target
+				oauth2Token.AccessToken = oauth2Token.Extra("id_token").(string)
 				err = StorageTokens(targetLabel, *oauth2Token)
 				if err != nil {
 					// Exchange error
@@ -235,7 +236,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 		Dial: (&net.Dialer{
 			Timeout: 10 * time.Second,
 		}).Dial,
-		TLSHandshakeTimeout: time.Second,
+		TLSHandshakeTimeout: 10 * time.Second,
 	}
 	var netClient = &http.Client{
 		Timeout:   10 * time.Second,
@@ -272,7 +273,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 	}
 
 	ctx := context.Background()
-	oauth2provider, err := oidc.NewProvider(ctx, configResponse.BaseURL)
+	oauth2provider, err := oidc.NewProvider(ctx, configResponse.Issuer)
 	if err != nil {
 		fmt.Printf("GSH client setting OIDC provider error: %s\n", err.Error())
 		os.Exit(1)
