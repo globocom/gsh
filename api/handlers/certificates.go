@@ -149,9 +149,6 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 			map[string]string{"result": "fail", "message": "Parse user key", "details": err.Error()})
 	}
 
-	// Using md5 because that's what ssh-keygen prints out, making searches for a particular key easier
-	userFingerprint := ssh.FingerprintLegacyMD5(certRequest.PublicKey)
-
 	// here is where differs from an external signer and a local signer
 	if h.config.GetBool("ca_external") {
 		externalPubKey, err := v.GetExternalPublicKey()
