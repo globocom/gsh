@@ -3,6 +3,7 @@
 # This script creates .env file, which later is used by the containers.
 #
 
+rm ./scripts/ca_host_key ./scripts/ca_host_key.pub
 yes y | ssh-keygen -t rsa -f ./scripts/ca_host_key -q -N ''
 
 MYSQL_ROOT_PASSWORD="rootPass$RANDOM$RANDOM"
@@ -40,6 +41,10 @@ GSH_OIDC_REALM=gsh
 GSH_OIDC_AUDIENCE=gsh
 GSH_OIDC_AUTHORIZED_PARTY=gsh
 GSH_OIDC_CLAIM=PreferredUsername
+GSH_OIDC_CLAIM_NAME=preferred_username
+GSH_OIDC_ISSUER=http://gsh_keycloak:8080/
+GSH_OIDC_CERTS=http://gsh_keycloak:8080/.well-known/jwks.json
+GSH_OIDC_CALLBACK_PORT=30000
 
 echo "Keycloak admin username: $KEYCLOAK_USER"
 echo "Keycloak admin password: $KEYCLOAK_PASSWORD"
@@ -82,3 +87,7 @@ echo "GSH_OIDC_REALM=$GSH_OIDC_REALM" >> .env
 echo "GSH_OIDC_AUDIENCE=$GSH_OIDC_AUDIENCE" >> .env
 echo "GSH_OIDC_AUTHORIZED_PARTY=$GSH_OIDC_AUTHORIZED_PARTY" >> .env
 echo "GSH_OIDC_CLAIM=$GSH_OIDC_CLAIM" >> .env
+echo "GSH_OIDC_CLAIM_NAME=$GSH_OIDC_CLAIM_NAME" >> .env
+echo "GSH_OIDC_ISSUER=$GSH_OIDC_ISSUER" >> .env
+echo "GSH_OIDC_CERTS=$GSH_OIDC_CERTS" >> .env
+echo "GSH_OIDC_CALLBACK_PORT=$GSH_OIDC_CALLBACK_PORT" >> .env
