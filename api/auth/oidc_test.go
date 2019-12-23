@@ -222,8 +222,7 @@ func TestAuthenticate(t *testing.T) {
 			json.Unmarshal([]byte(jws), &keySet)
 			config.Set("oidc_keys", keySet)
 			// make issuer ok
-			config.Set("oidc_base_url", "accounts.example.org")
-			config.Set("oidc_realm", "gsh")
+			config.Set("oidc_issuer", "accounts.example.org/gsh")
 
 			_, err := ca.Authenticate(ctx, *config)
 			if err == nil {
@@ -253,8 +252,7 @@ func TestAuthenticate(t *testing.T) {
 			json.Unmarshal([]byte(jws), &keySet)
 			config.Set("oidc_keys", keySet)
 			// make issuer ok
-			config.Set("oidc_base_url", "accounts.example.org")
-			config.Set("oidc_realm", "gsh")
+			config.Set("oidc_issuer", "accounts.example.org/gsh")
 			config.Set("oidc_claim", "Email")
 			config.Set("oidc_claim_name", "email")
 
@@ -293,8 +291,7 @@ func TestAuthenticate(t *testing.T) {
 			json.Unmarshal([]byte(jws), &keySet)
 			config.Set("oidc_keys", keySet)
 			// make issuer ok
-			config.Set("oidc_base_url", "accounts.example.org")
-			config.Set("oidc_realm", "gsh")
+			config.Set("oidc_issuer", "accounts.example.org/gsh")
 			config.Set("oidc_claim", "Email")
 			config.Set("oidc_claim_name", "email")
 
