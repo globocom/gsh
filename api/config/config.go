@@ -20,7 +20,7 @@ func Init() viper.Viper {
 	config := viper.New()
 	config.SetConfigType("json")
 	config.SetConfigName("config")
-	config.AddConfigPath("../")
+	config.AddConfigPath(".")
 	err := config.ReadInConfig() // Find and read the config file
 	if err != nil {              // Handle errors reading the config file
 		fmt.Println("Config file not set, using .env variables")
