@@ -26,6 +26,7 @@ func Init() viper.Viper {
 		fmt.Println("Config file not set, using .env variables")
 	}
 	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
+	config.SetDefault("oidc_callback_port", "30000")
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -94,6 +95,10 @@ func Check(config viper.Viper) error {
 	}
 	if len(config.GetString("oidc_audience")) == 0 {
 		fmt.Println("OIDC audience or client id (oidc_audience) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_authorized_party")) == 0 {
+		fmt.Println("OIDC authorized party or client id (oidc_authorized_party) not set")
 		fails++
 	}
 	if len(config.GetString("oidc_claim")) == 0 {

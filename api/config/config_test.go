@@ -217,6 +217,24 @@ func TestCheck(t *testing.T) {
 			}
 		})
 	t.Run(
+		"Test Check(): oidc_authorized_party",
+		func(t *testing.T) {
+
+			os.Setenv("PORT", "8888")
+			os.Setenv("GSH_STORAGE_DRIVER", "mysql")
+			os.Setenv("GSH_CA_EXTERNAL", "0")
+			os.Setenv("GSH_CA_PRIVATE_KEY", "GSH_CA_PRIVATE_KEY")
+			os.Setenv("GSH_CA_PUBLIC_KEY", "GSH_CA_PUBLIC_KEY")
+			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_REALM", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
+			config := Init()
+			err := Check(config)
+			if err == nil {
+				t.Fatalf("CONFIG: fail to check app oidc_authorized_party (%v)", err)
+			}
+		})
+	t.Run(
 		"Test Check(): oidc_claim",
 		func(t *testing.T) {
 
@@ -228,6 +246,7 @@ func TestCheck(t *testing.T) {
 			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
 			os.Setenv("GSH_OIDC_REALM", "gsh")
 			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
 			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
 			config := Init()
 			err := Check(config)
@@ -247,12 +266,82 @@ func TestCheck(t *testing.T) {
 			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
 			os.Setenv("GSH_OIDC_REALM", "gsh")
 			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
 			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
 			os.Setenv("GSH_OIDC_CLAIM_NAME", "preferred_username")
 			config := Init()
 			err := Check(config)
 			if err == nil {
 				t.Fatalf("CONFIG: fail to check app oidc_claim_name (%v)", err)
+			}
+		})
+	t.Run(
+		"Test Check(): oidc_issuer",
+		func(t *testing.T) {
+
+			os.Setenv("PORT", "8888")
+			os.Setenv("GSH_STORAGE_DRIVER", "mysql")
+			os.Setenv("GSH_CA_EXTERNAL", "0")
+			os.Setenv("GSH_CA_PRIVATE_KEY", "GSH_CA_PRIVATE_KEY")
+			os.Setenv("GSH_CA_PUBLIC_KEY", "GSH_CA_PUBLIC_KEY")
+			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_REALM", "gsh")
+			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
+			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
+			os.Setenv("GSH_OIDC_CLAIM_NAME", "preferred_username")
+			os.Setenv("GSH_OIDC_ISSUER", "https://keycloak.example.org/auth/realms")
+			config := Init()
+			err := Check(config)
+			if err == nil {
+				t.Fatalf("CONFIG: fail to check app oidc_issuer (%v)", err)
+			}
+		})
+	t.Run(
+		"Test Check(): oidc_certs",
+		func(t *testing.T) {
+
+			os.Setenv("PORT", "8888")
+			os.Setenv("GSH_STORAGE_DRIVER", "mysql")
+			os.Setenv("GSH_CA_EXTERNAL", "0")
+			os.Setenv("GSH_CA_PRIVATE_KEY", "GSH_CA_PRIVATE_KEY")
+			os.Setenv("GSH_CA_PUBLIC_KEY", "GSH_CA_PUBLIC_KEY")
+			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_REALM", "gsh")
+			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
+			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
+			os.Setenv("GSH_OIDC_CLAIM_NAME", "preferred_username")
+			os.Setenv("GSH_OIDC_ISSUER", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_CERTS", "https://keycloak.example.org/.well-known/jwks.json")
+			config := Init()
+			err := Check(config)
+			if err == nil {
+				t.Fatalf("CONFIG: fail to check app oidc_certs (%v)", err)
+			}
+		})
+	t.Run(
+		"Test Check(): oidc_callback_port",
+		func(t *testing.T) {
+
+			os.Setenv("PORT", "8888")
+			os.Setenv("GSH_STORAGE_DRIVER", "mysql")
+			os.Setenv("GSH_CA_EXTERNAL", "0")
+			os.Setenv("GSH_CA_PRIVATE_KEY", "GSH_CA_PRIVATE_KEY")
+			os.Setenv("GSH_CA_PUBLIC_KEY", "GSH_CA_PUBLIC_KEY")
+			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_REALM", "gsh")
+			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
+			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
+			os.Setenv("GSH_OIDC_CLAIM_NAME", "preferred_username")
+			os.Setenv("GSH_OIDC_ISSUER", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_CERTS", "https://keycloak.example.org/.well-known/jwks.json")
+			os.Setenv("GSH_OIDC_CALLBACK_PORT", "30000")
+			config := Init()
+			err := Check(config)
+			if err == nil {
+				t.Fatalf("CONFIG: fail to check app oidc_callback_port (%v)", err)
 			}
 		})
 	t.Run(
@@ -267,8 +356,12 @@ func TestCheck(t *testing.T) {
 			os.Setenv("GSH_OIDC_BASE_URL", "https://keycloak.example.org/auth/realms")
 			os.Setenv("GSH_OIDC_REALM", "gsh")
 			os.Setenv("GSH_OIDC_AUDIENCE", "gsh")
+			os.Setenv("GSH_OIDC_AUTHORIZED_PARTY", "gsh")
 			os.Setenv("GSH_OIDC_CLAIM", "PreferredUsername")
 			os.Setenv("GSH_OIDC_CLAIM_NAME", "preferred_username")
+			os.Setenv("GSH_OIDC_ISSUER", "https://keycloak.example.org/auth/realms")
+			os.Setenv("GSH_OIDC_CERTS", "https://keycloak.example.org/.well-known/jwks.json")
+			os.Setenv("GSH_OIDC_CALLBACK_PORT", "30000")
 			os.Setenv("GSH_PERM_ADMIN", "admin admin1 admin2")
 			config := Init()
 			err := Check(config)
