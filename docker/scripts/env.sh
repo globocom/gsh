@@ -42,8 +42,8 @@ GSH_OIDC_AUDIENCE=gsh
 GSH_OIDC_AUTHORIZED_PARTY=gsh
 GSH_OIDC_CLAIM=PreferredUsername
 GSH_OIDC_CLAIM_NAME=preferred_username
-GSH_OIDC_ISSUER=http://gsh_keycloak:8080/
-GSH_OIDC_CERTS=http://gsh_keycloak:8080/.well-known/jwks.json
+GSH_OIDC_ISSUER=http://gsh_keycloak:8080/auth/realms/gsh
+GSH_OIDC_CERTS=http://gsh_keycloak:8080/auth/realms/gsh/protocol/openid-connect/certs
 GSH_OIDC_CALLBACK_PORT=30000
 
 echo "Keycloak admin username: $KEYCLOAK_USER"
