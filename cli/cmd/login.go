@@ -146,6 +146,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			Issuer       string `json:"oidc_issuer"`
 			Certs        string `json:"oidc_certs"`
 			CallbackPort string `json:"oidc_callback_port"`
+			ClientSecret string `json:"oidc_client_secret"`
 		}
 		configResponse := new(ConfigResponse)
 		if err := json.Unmarshal(body, &configResponse); err != nil {
@@ -181,6 +182,10 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			RedirectURL: redirectURL,
 			Endpoint:    oauth2provider.Endpoint(),
 			Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "email", "profile"},
+		}
+		// Uses client secret only if it is configured at API (for Google Accounts compatibility)
+		if configResponse.ClientSecret != "" {
+			oauth2config.ClientSecret = configResponse.ClientSecret
 		}
 
 		// Generate radom state and PKCE codes

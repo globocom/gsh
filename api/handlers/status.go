@@ -27,5 +27,6 @@ func (h AppHandler) StatusConfig(c echo.Context) error {
 		"oidc_issuer":        h.config.GetString("oidc_issuer"),
 		"oidc_certs":         h.config.GetString("oidc_certs"),
 		"oidc_callback_port": h.config.GetString("oidc_callback_port"),
+		"oidc_client_secret": h.config.GetString("oidc_client_secret"), // only for Google Accounts compatibility
 	})
 }
