@@ -216,13 +216,11 @@ func (ca OpenIDCAuth) verifyAudience(token map[string]interface{}, audience stri
 
 func (ca OpenIDCAuth) verifyAuthorizedParty(token map[string]interface{}, azp string) error {
 
-	tokenAzp, ok := token["azp"].(string)
-	if !ok {
-		return errors.New("verifyAuthorizedParty: IDToken issued without valid azp")
-	}
+	// Is OPTIONAL (https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+	tokenAzp, _ := token["azp"].(string)
 
 	// Verifies if authorized party is present
-	if len(azp) == 0 && len(tokenAzp) == 0 {
+	if len(tokenAzp) == 0 {
 		return nil
 	}
 
