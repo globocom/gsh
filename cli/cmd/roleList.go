@@ -65,7 +65,7 @@ List all roles at GSH API. If a user is informed, this command list roles of inf
 			Dial: (&net.Dialer{
 				Timeout: 10 * time.Second,
 			}).Dial,
-			TLSHandshakeTimeout: time.Second,
+			TLSHandshakeTimeout: 10 * time.Second,
 		}
 		var netClient = &http.Client{
 			Timeout:   10 * time.Second,

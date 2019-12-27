@@ -155,7 +155,7 @@ that will be assigned to a user. ID is a slug string that identifies the role.
 			Dial: (&net.Dialer{
 				Timeout: 10 * time.Second,
 			}).Dial,
-			TLSHandshakeTimeout: time.Second,
+			TLSHandshakeTimeout: 10 * time.Second,
 		}
 		var netClient = &http.Client{
 			Timeout:   10 * time.Second,

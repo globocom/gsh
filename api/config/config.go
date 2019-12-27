@@ -20,12 +20,13 @@ func Init() viper.Viper {
 	config := viper.New()
 	config.SetConfigType("json")
 	config.SetConfigName("config")
-	config.AddConfigPath("../")
+	config.AddConfigPath(".")
 	err := config.ReadInConfig() // Find and read the config file
 	if err != nil {              // Handle errors reading the config file
 		fmt.Println("Config file not set, using .env variables")
 	}
 	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
+	config.SetDefault("oidc_callback_port", "30000")
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
@@ -96,12 +97,24 @@ func Check(config viper.Viper) error {
 		fmt.Println("OIDC audience or client id (oidc_audience) not set")
 		fails++
 	}
+	if len(config.GetString("oidc_authorized_party")) == 0 {
+		fmt.Println("OIDC authorized party or client id (oidc_authorized_party) not set")
+		fails++
+	}
 	if len(config.GetString("oidc_claim")) == 0 {
 		fmt.Println("OIDC claim (oidc_claim) not set")
 		fails++
 	}
 	if len(config.GetString("oidc_claim_name")) == 0 {
 		fmt.Println("OIDC claim name (oidc_claim_name) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_issuer")) == 0 {
+		fmt.Println("OIDC issuer (oidc_issuer) not set")
+		fails++
+	}
+	if len(config.GetString("oidc_certs")) == 0 {
+		fmt.Println("OIDC certs (oidc_certs) not set")
 		fails++
 	}
 

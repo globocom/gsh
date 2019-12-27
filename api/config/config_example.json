@@ -22,5 +22,12 @@
     "oidc_realm": "oidc",
     "oidc_audience": "gsh",
     "oidc_authorized_party": "gsh",
-    "oidc_claim": "preferred_username"
+    "oidc_claim": "preferred_username",
+    "oidc_claim_name": "email",
+    "oidc_issuer": "https://oidc.example.com",
+    "oidc_certs": "https://oidc.example.com/.well-known/jwks.json",
+    "oidc_callback_port": "30000",
+
+    "perm_admin": "admin@example.org",
+    "casbin_uri": "user:pass@tcp(127.0.0.1:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true"
 }

@@ -3,7 +3,7 @@ ADD  ./ ${GOPATH}/src/github.com/globocom/gsh
 WORKDIR ${GOPATH}/src/github.com/globocom/gsh
 RUN apk add --update git && \
     go get -u github.com/golang/dep/cmd/dep && \
-    dep ensure --update && \
+    dep ensure -v && \
     go build -o /tmp/gsh-api ./api && \
     go build -o /tmp/gsh-agent ./agent
 

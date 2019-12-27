@@ -73,7 +73,7 @@ func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, 
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
 	}
-	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
+	issuer := config.GetString("oidc_issuer")
 	err = ca.verifyIssuer(token, issuer)
 	if err != nil {
 		return "", fmt.Errorf("OpenID Authenticate: %v", err.Error())
@@ -108,7 +108,7 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 	client := &http.Client{
 		Timeout: time.Duration(10) * time.Second,
 	}
-	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
+	keyURL := config.GetString("oidc_certs")
 	req, err := http.NewRequest("GET", keyURL, nil)
 	if err != nil {
 		return fmt.Errorf("getSignatureKeys: Failed to generate request (%v)", err)
@@ -216,13 +216,11 @@ func (ca OpenIDCAuth) verifyAudience(token map[string]interface{}, audience stri
 
 func (ca OpenIDCAuth) verifyAuthorizedParty(token map[string]interface{}, azp string) error {
 
-	tokenAzp, ok := token["azp"].(string)
-	if !ok {
-		return errors.New("verifyAuthorizedParty: IDToken issued without valid azp")
-	}
+	// Is OPTIONAL (https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
+	tokenAzp, _ := token["azp"].(string)
 
 	// Verifies if authorized party is present
-	if len(azp) == 0 && len(tokenAzp) == 0 {
+	if len(tokenAzp) == 0 {
 		return nil
 	}
 

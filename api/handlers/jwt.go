@@ -85,12 +85,12 @@ func ValidateJWT(c echo.Context, config viper.Viper) (IDToken, error) {
 	}
 
 	// Verify signature
-	keyURL := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm") + "/protocol/openid-connect/certs"
+	keyURL := config.GetString("oidc_certs")
 	err = verifySignature(jwt, keyURL)
 	if err != nil {
 		return token, fmt.Errorf("ValidateJWT: %v", err.Error())
 	}
-	issuer := config.GetString("oidc_base_url") + "/" + config.GetString("oidc_realm")
+	issuer := config.GetString("oidc_issuer")
 	err = verifyIssuer(token, issuer)
 	if err != nil {
 		return token, fmt.Errorf("ValidateJWT: %v", err.Error())
