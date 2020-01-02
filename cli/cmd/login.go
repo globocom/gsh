@@ -140,13 +140,14 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			os.Exit(1)
 		}
 		type ConfigResponse struct {
-			BaseURL      string `json:"oidc_base_url"`
-			Realm        string `json:"oidc_realm"`
-			Audience     string `json:"oidc_audience"`
-			Issuer       string `json:"oidc_issuer"`
-			Certs        string `json:"oidc_certs"`
-			CallbackPort string `json:"oidc_callback_port"`
-			ClientSecret string `json:"oidc_client_secret"`
+			BaseURL      string   `json:"oidc_base_url"`
+			Realm        string   `json:"oidc_realm"`
+			Audience     string   `json:"oidc_audience"`
+			Issuer       string   `json:"oidc_issuer"`
+			Certs        string   `json:"oidc_certs"`
+			CallbackPort string   `json:"oidc_callback_port"`
+			ClientSecret string   `json:"oidc_client_secret"`
+			Scopes       []string `json:"oidc_scopes"`
 		}
 		configResponse := new(ConfigResponse)
 		if err := json.Unmarshal(body, &configResponse); err != nil {
@@ -181,7 +182,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			ClientID:    configResponse.Audience,
 			RedirectURL: redirectURL,
 			Endpoint:    oauth2provider.Endpoint(),
-			Scopes:      []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "email", "profile"},
+			Scopes:      configResponse.Scopes,
 		}
 		// Uses client secret only if it is configured at API (for Google Accounts compatibility)
 		if configResponse.ClientSecret != "" {

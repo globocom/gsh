@@ -18,7 +18,7 @@ func StatusReady(c echo.Context) error {
 
 // StatusConfig is a method that respond WORKING and is used to verify that the application is running (live)
 func (h AppHandler) StatusConfig(c echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{
+	return c.JSON(http.StatusOK, map[string]interface{}{
 		"oidc_base_url":      h.config.GetString("oidc_base_url"),
 		"oidc_realm":         h.config.GetString("oidc_realm"),
 		"oidc_audience":      h.config.GetString("oidc_audience"),
@@ -28,5 +28,6 @@ func (h AppHandler) StatusConfig(c echo.Context) error {
 		"oidc_certs":         h.config.GetString("oidc_certs"),
 		"oidc_callback_port": h.config.GetString("oidc_callback_port"),
 		"oidc_client_secret": h.config.GetString("oidc_client_secret"), // only for Google Accounts compatibility
+		"oidc_scopes":        h.config.GetStringSlice("oidc_scopes"),
 	})
 }

@@ -27,6 +27,7 @@ func Init() viper.Viper {
 	}
 	config.SetDefault("storage_uri", "user:pass@tcp(localhost:3306)/gsh?charset=utf8&parseTime=True&multiStatements=true")
 	config.SetDefault("oidc_callback_port", "30000")
+	config.SetDefault("oidc_scopes", []string{"openid"})
 	config.SetEnvPrefix("GSH")
 	config.AutomaticEnv()
 	return *config
