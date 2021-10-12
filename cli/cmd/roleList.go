@@ -57,8 +57,7 @@ List all roles at GSH API. If a user is informed, this command list roles of inf
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{
@@ -86,6 +85,11 @@ List all roles at GSH API. If a user is informed, this command list roles of inf
 		} else {
 			req, err = http.NewRequest("GET", currentTarget.Endpoint+"/authz/roles", nil)
 		}
+		if err != nil {
+			fmt.Printf("Client error pre role request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)

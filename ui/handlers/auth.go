@@ -33,7 +33,7 @@ func (h AppHandler) AuthCallback(c echo.Context) error {
 
 	// verify state
 	stateCookie, ok := sess.Values["state"].(string)
-	if ok == false {
+	if !ok {
 		return c.String(http.StatusInternalServerError, "Invalid state at cookie")
 	}
 	stateOauth2 := c.QueryParam("state")

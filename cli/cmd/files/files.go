@@ -35,7 +35,6 @@ import (
 	"os"
 
 	"github.com/globocom/gsh/cli/cmd/config"
-	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	homedir "github.com/mitchellh/go-homedir"
 )
@@ -78,8 +77,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 
 	// Set specific per target
 	// Get current target
-	currentTarget := new(types.Target)
-	currentTarget = config.GetCurrentTarget()
+	currentTarget := config.GetCurrentTarget()
 	path := certPath + "/" + currentTarget.Label
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)

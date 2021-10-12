@@ -67,8 +67,7 @@ can access a host just giving a DNS name or specifying the IP of the host.
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Keys struct for reuse
 		type Keys struct {
@@ -211,8 +210,14 @@ can access a host just giving a DNS name or specifying the IP of the host.
 
 		// Make GSH request
 		req, err := http.NewRequest("POST", currentTarget.Endpoint+"/certificates", bytes.NewBuffer(certRequestJSON))
+		if err != nil {
+			fmt.Printf("Client error pre certificate request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
+
 		resp, err := netClient.Do(req)
 		if err != nil {
 			fmt.Printf("Client error post certificate request: (%s)\n", err.Error())
@@ -226,7 +231,7 @@ can access a host just giving a DNS name or specifying the IP of the host.
 			os.Exit(1)
 		}
 		if resp.StatusCode != http.StatusOK {
-			fmt.Printf("Client error checking http status response: (%v)\n\n%s\n", resp.StatusCode, body)
+			fmt.Printf("Client error checking http status response: (%d)\n\n%s\n", resp.StatusCode, body)
 			os.Exit(1)
 		}
 		defer resp.Body.Close()

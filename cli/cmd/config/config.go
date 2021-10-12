@@ -86,8 +86,7 @@ func GetCurrentTarget() *types.Target {
 // Discovery makes GET /status/config request to GSH API to get OIDC configuration
 func Discovery() (*DiscoveryResponse, error) {
 	// Get current target
-	currentTarget := new(types.Target)
-	currentTarget = GetCurrentTarget()
+	currentTarget := GetCurrentTarget()
 
 	// Setting custom HTTP client with timeouts
 	var netTransport = &http.Transport{

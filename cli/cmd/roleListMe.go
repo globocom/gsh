@@ -79,6 +79,11 @@ List all roles for current user at GSH API.
 
 		// Make GSH request
 		req, err := http.NewRequest("GET", currentTarget.Endpoint+"/authz/roles/me", nil)
+		if err != nil {
+			fmt.Printf("Client error pre role request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
+
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)

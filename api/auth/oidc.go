@@ -121,7 +121,7 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("getSignatureKeys: Failed to get JWT Keys, OIDC Server status code: " + string(resp.StatusCode))
+		return fmt.Errorf("getSignatureKeys: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
