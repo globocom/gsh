@@ -118,7 +118,7 @@ func verifySignature(jwt, certsURL string) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("verifySignature: Failed to get JWT Keys, OIDC Server status code: " + string(resp.StatusCode))
+		return fmt.Errorf("verifySignature: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -257,11 +257,8 @@ func (j *jsonTime) UnmarshalJSON(b []byte) error {
 
 // GetClaim returns a claim from JWT
 func GetClaim(jwt string, claim string) (string, error) {
-	var err error
-	token := IDToken{}
-
 	// Parse JWT
-	token, err = parseIDToken(jwt)
+	token, err := parseIDToken(jwt)
 	if err != nil {
 		return "", fmt.Errorf("GetClaim: %v", err.Error())
 	}

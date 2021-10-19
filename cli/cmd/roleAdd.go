@@ -62,8 +62,7 @@ that will be assigned to a user. ID is a slug string that identifies the role.
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {

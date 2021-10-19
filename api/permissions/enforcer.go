@@ -79,12 +79,12 @@ func IPMultipleMatch(ips1 string, ips2 string) bool {
 					panic("invalid argument: ip2 in IPMultipleMatch() function is neither an IP address nor a CIDR.")
 				}
 
-				if objIP1.Equal(objIP2) == true {
+				if objIP1.Equal(objIP2) {
 					anyMatch = true
 				}
 			}
 
-			if cidr.Contains(objIP1) == true {
+			if cidr.Contains(objIP1) {
 				anyMatch = true
 			}
 		}

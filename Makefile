@@ -5,7 +5,6 @@ GO ?= go
 GOROOT ?= $(shell $(GO) env GOROOT)
 GOPATH ?= $(shell $(GO) env GOPATH)
 GOBIN ?= $(GOPATH)/bin
-GODEP ?= $(GOBIN)/dep
 GOLINT ?= $(GOBIN)/golint
 GOSEC ?= $(GOBIN)/gosec
 
@@ -21,13 +20,12 @@ PROJECT := GSH
 
 ## Checks depencies of the project
 check-deps:
-	$(GODEP) ensure -v
+	go mod download
 
 ## Gets all go test dependencies
 get-test-deps:
-	$(GO) get -u github.com/golang/dep/cmd/dep
 	$(GO) get -u golang.org/x/lint/golint
-	$(GO) get -u github.com/mattn/goveralls
+	$(GO) install github.com/mattn/goveralls@latest
 
 ## Runs a security static analysis using Gosec
 check-sec:

@@ -40,7 +40,6 @@ import (
 
 	"github.com/globocom/gsh/cli/cmd/auth"
 	"github.com/globocom/gsh/cli/cmd/config"
-	"github.com/globocom/gsh/types"
 	"github.com/gosimple/slug"
 	"github.com/spf13/cobra"
 )
@@ -57,8 +56,7 @@ Assign a previous created role to a user.
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
@@ -87,6 +85,10 @@ Assign a previous created role to a user.
 
 		// Make GSH request
 		req, err := http.NewRequest("POST", currentTarget.Endpoint+"/authz/roles/"+args[0]+"/"+args[1], nil)
+		if err != nil {
+			fmt.Printf("Client pre post role request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)

@@ -45,7 +45,6 @@ import (
 	oidc "github.com/coreos/go-oidc"
 	"github.com/globocom/gsh/cli/cmd/auth"
 	"github.com/globocom/gsh/cli/cmd/config"
-	"github.com/globocom/gsh/types"
 	"github.com/labstack/gommon/random"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -68,8 +67,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Check for set-token-storage flag
 		var setStorage string
@@ -97,7 +95,8 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 					match = true
 				}
 			}
-			if match == false {
+
+			if !match {
 				fmt.Printf("Client error validating set-token-storage option (%s), option available: (%v)\n", setStorage, keyring.AvailableBackends())
 				os.Exit(1)
 			}

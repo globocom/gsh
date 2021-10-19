@@ -233,7 +233,7 @@ func (h AppHandler) RemoveRole(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError,
 			map[string]string{"result": "fail", "message": "Role cannot be removed", "details": err.Error()})
 	}
-	if err == nil && check == false {
+	if err == nil && !check {
 		return c.JSON(http.StatusNotFound,
 			map[string]string{"result": "fail", "message": "Role ID not found"})
 	}
