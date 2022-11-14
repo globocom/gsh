@@ -113,7 +113,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	if err != nil {
 		return "", "", errors.New("File error creating certfile (" + err.Error() + ")")
 	}
-	err = ioutil.WriteFile(certLocation, []byte(cert), 0650)
+	err = ioutil.WriteFile(certLocation, []byte(cert), 0600)
 	if err != nil {
 		return "", "", errors.New("File error writing certfile (" + err.Error() + ")")
 	}
