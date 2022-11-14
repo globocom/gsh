@@ -200,7 +200,12 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 
 		// Setup local web server
 		http.HandleFunc("/", auth.Callback(state, codeVerifier, redirectURL, oauth2config, currentTarget.Label, finish))
-		server := &http.Server{}
+		server := &http.Server{
+			ReadTimeout:       1 * time.Second,
+			WriteTimeout:      1 * time.Second,
+			IdleTimeout:       30 * time.Second,
+			ReadHeaderTimeout: 2 * time.Second,
+		}
 		go server.Serve(l)
 
 		// Open client browser to user login on OIDC
