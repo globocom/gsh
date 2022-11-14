@@ -132,8 +132,8 @@ func verifySignature(jwt, certsURL string) error {
 
 	// Test with each key (if all fails, signature is invalid)
 	fails := 0
-	for _, key := range keySet.Keys {
-		_, err = jws.Verify(&key)
+	for i := range keySet.Keys {
+		_, err = jws.Verify(keySet.Keys[i])
 		if err != nil {
 			fails++
 		}
