@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime"
 	"net/http"
 	"reflect"
@@ -120,7 +120,7 @@ func verifySignature(jwt, certsURL string) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("verifySignature: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("verifySignature: Unable to read response body (%v)", err)
 	}

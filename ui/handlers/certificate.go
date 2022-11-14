@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -121,7 +121,7 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	}
 
 	// Read body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return c.Render(http.StatusGatewayTimeout, "request.html", map[string]interface{}{
 			"name":        "Generate your SSH certificate",

@@ -32,7 +32,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -93,7 +93,7 @@ List all roles for current user at GSH API.
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading role response: (%s)\n", err.Error())
 			os.Exit(1)

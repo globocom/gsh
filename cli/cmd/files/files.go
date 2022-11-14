@@ -31,7 +31,6 @@ package files
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -94,7 +93,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	if err != nil {
 		return "", "", errors.New("File error creating keyfile (" + err.Error() + ")")
 	}
-	err = ioutil.WriteFile(keyFileLocation, []byte(key), 0600)
+	err = os.WriteFile(keyFileLocation, []byte(key), 0600)
 	if err != nil {
 		return "", "", errors.New("File error writing keyfile (" + err.Error() + ")")
 	}
@@ -113,7 +112,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	if err != nil {
 		return "", "", errors.New("File error creating certfile (" + err.Error() + ")")
 	}
-	err = ioutil.WriteFile(certLocation, []byte(cert), 0600)
+	err = os.WriteFile(certLocation, []byte(cert), 0600)
 	if err != nil {
 		return "", "", errors.New("File error writing certfile (" + err.Error() + ")")
 	}

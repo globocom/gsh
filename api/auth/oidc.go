@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -124,7 +124,7 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("getSignatureKeys: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("getSignatureKeys: Unable to read response body (%v)", err)
 	}

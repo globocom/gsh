@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -144,7 +144,7 @@ func (v *Vault) GetExternalPublicKey() (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New("External CA did not respond correctly: status code " + strconv.Itoa(resp.StatusCode))
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

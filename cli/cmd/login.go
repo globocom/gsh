@@ -33,7 +33,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -129,7 +129,7 @@ All gsh actions require the user to be authenticated (except [[gsh login]],
 			os.Exit(1)
 		}
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("GSH API body response error: %s\n", err.Error())
 			os.Exit(1)

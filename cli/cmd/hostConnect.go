@@ -37,7 +37,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -225,7 +225,7 @@ can access a host just giving a DNS name or specifying the IP of the host.
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading certificate response: (%s)\n", err.Error())
 			os.Exit(1)
