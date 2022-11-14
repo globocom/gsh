@@ -53,5 +53,5 @@ func Init(config viper.Viper) (*gorm.DB, error) {
 		return db, nil
 	}
 
-	return nil, errors.New("Storage driver not found")
+	return nil, errors.New("init: Storage driver not found")
 }

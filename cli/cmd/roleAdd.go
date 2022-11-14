@@ -33,7 +33,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -163,6 +163,10 @@ that will be assigned to a user. ID is a slug string that identifies the role.
 
 		// Make GSH request
 		req, err := http.NewRequest("POST", currentTarget.Endpoint+"/authz/roles", bytes.NewBuffer(roleRequestJSON))
+		if err != nil {
+			fmt.Printf("Client error creating post role request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)
@@ -172,7 +176,7 @@ that will be assigned to a user. ID is a slug string that identifies the role.
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading role response: (%s)\n", err.Error())
 			os.Exit(1)

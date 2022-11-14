@@ -36,7 +36,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -250,7 +250,7 @@ func RecoverToken(currentTarget *types.Target) (*oauth2.Token, error) {
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("GSH API body response error: %s\n", err.Error())
 		os.Exit(1)

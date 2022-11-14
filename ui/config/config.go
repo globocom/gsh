@@ -77,7 +77,7 @@ func Check(config viper.Viper) error {
 	}
 
 	if fails > 0 {
-		return errors.New("Configuration error")
+		return errors.New("check: Configuration error")
 	}
 
 	return nil

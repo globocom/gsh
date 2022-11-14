@@ -32,7 +32,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -55,8 +55,7 @@ List all roles for current user at GSH API.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{
@@ -93,7 +92,7 @@ List all roles for current user at GSH API.
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading role response: (%s)\n", err.Error())
 			os.Exit(1)

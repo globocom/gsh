@@ -45,7 +45,7 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	// Initiates a new enforcer
 	e, err := casbin.NewEnforcerSafe(m, a)
 	if err != nil {
-		return nil, errors.New("Could not create new Enforcer")
+		return nil, errors.New("init: Could not create new Enforcer")
 	}
 
 	e.SetModel(m)
@@ -57,26 +57,26 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	// Reload policies from database before add admin policies
 	err = e.LoadPolicy()
 	if err != nil {
-		return nil, errors.New("Could not load policies")
+		return nil, errors.New("init: Could not load policies")
 	}
 
 	return e, nil
 }
 
 // IPMultipleMatch determines whether any of IP address in ip1 matches the pattern of any IP address in ip2, ip2 can be an IP address or a CIDR pattern.
-func IPMultipleMatch(ips1 string, ips2 string) bool {
+func IPMultipleMatch(ips1 string, ips2 string) (bool, error) {
 	anyMatch := false
 	for _, ip2 := range strings.Split(ips2, ";") {
 		for _, ip1 := range strings.Split(ips1, ";") {
 			objIP1 := net.ParseIP(ip1)
 			if objIP1 == nil {
-				panic("invalid argument: ip1 in IPMultipleMatch() function is not an IP address.")
+				return false, errors.New("IPMultipleMatch: first argument is not a valid IP address")
 			}
 			_, cidr, err := net.ParseCIDR(ip2)
 			if err != nil {
 				objIP2 := net.ParseIP(ip2)
 				if objIP2 == nil {
-					panic("invalid argument: ip2 in IPMultipleMatch() function is neither an IP address nor a CIDR.")
+					return false, errors.New("IPMultipleMatch: second argument is not a valid IP address or CIDR")
 				}
 
 				if objIP1.Equal(objIP2) {
@@ -89,7 +89,7 @@ func IPMultipleMatch(ips1 string, ips2 string) bool {
 			}
 		}
 	}
-	return anyMatch
+	return anyMatch, nil
 }
 
 // IPMultipleMatchFunc is the wrapper for IPMultipleMatch.
@@ -97,5 +97,5 @@ func IPMultipleMatchFunc(args ...interface{}) (interface{}, error) {
 	ip1 := args[0].(string)
 	ip2 := args[1].(string)
 
-	return bool(IPMultipleMatch(ip1, ip2)), nil
+	return IPMultipleMatch(ip1, ip2)
 }

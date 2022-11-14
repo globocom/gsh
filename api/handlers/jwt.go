@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime"
 	"net/http"
 	"reflect"
@@ -120,7 +120,7 @@ func verifySignature(jwt, certsURL string) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("verifySignature: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("verifySignature: Unable to read response body (%v)", err)
 	}
@@ -132,8 +132,8 @@ func verifySignature(jwt, certsURL string) error {
 
 	// Test with each key (if all fails, signature is invalid)
 	fails := 0
-	for _, key := range keySet.Keys {
-		_, err = jws.Verify(&key)
+	for i := range keySet.Keys {
+		_, err = jws.Verify(keySet.Keys[i])
 		if err != nil {
 			fails++
 		}
@@ -147,7 +147,7 @@ func verifySignature(jwt, certsURL string) error {
 
 func verifyExpiry(token IDToken) error {
 	if time.Time(token.Expiry).Before(time.Now()) {
-		return fmt.Errorf("Token is expired (%s)", time.Time(token.Expiry).String())
+		return fmt.Errorf("verifyExpiry: Token is expired (%s)", time.Time(token.Expiry).String())
 	}
 	return nil
 }
@@ -178,7 +178,7 @@ func verifyAuthorizedParty(token IDToken, azp string) error {
 
 func verifyIssuer(token IDToken, issuer string) error {
 	if token.Issuer != issuer {
-		return fmt.Errorf("Id Token issuer not recognized (%s)", token.Issuer)
+		return fmt.Errorf("verifyIssuer: Id Token issuer not recognized (%s)", token.Issuer)
 	}
 	return nil
 }

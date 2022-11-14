@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -24,7 +24,8 @@ type Auth interface {
 type OpenIDCAuth struct{}
 
 // Authenticate uses context information and configuration to authenticate an user using OpenID Connect.
-//   Authenticate returns an username (or oidc_claim configured) and an error.
+//
+//	Authenticate returns an username (or oidc_claim configured) and an error.
 func (ca OpenIDCAuth) Authenticate(c echo.Context, config viper.Viper) (string, error) {
 	var err error
 
@@ -123,7 +124,7 @@ func (ca OpenIDCAuth) getSignatureKeys(config viper.Viper) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("getSignatureKeys: Failed to get JWT Keys, OIDC Server status code: %d", resp.StatusCode)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("getSignatureKeys: Unable to read response body (%v)", err)
 	}
@@ -148,8 +149,8 @@ func (ca OpenIDCAuth) verifySignature(jwt string, config viper.Viper) error {
 
 	// Test with each key (if all fails, signature is invalid)
 	fails := 0
-	for _, key := range keySet.Keys {
-		_, err = jws.Verify(&key)
+	for i := range keySet.Keys {
+		_, err = jws.Verify(keySet.Keys[i])
 		if err != nil {
 			fails++
 		}
@@ -170,7 +171,7 @@ func (ca OpenIDCAuth) verifyExpiry(token map[string]interface{}) error {
 	}
 
 	if time.Time(time.Unix(int64(tokenExp), 0)).Before(time.Now()) {
-		return fmt.Errorf("Token is expired (%v)", tokenExp)
+		return fmt.Errorf("verifyExpiry: Token is expired (%v)", tokenExp)
 	}
 	return nil
 }

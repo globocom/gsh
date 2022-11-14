@@ -32,7 +32,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -58,8 +58,7 @@ List users associated with a role at GSH API.
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
@@ -102,7 +101,7 @@ List users associated with a role at GSH API.
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading role response: (%s)\n", err.Error())
 			os.Exit(1)

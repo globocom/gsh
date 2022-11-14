@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -116,11 +116,11 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", errors.New("Failed to sign SSH certificate")
+		return "", errors.New("signUserSSHCertificate: Failed to sign SSH certificate")
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("Failed to sign SSH certificate, not 200 ok")
+		return "", errors.New("signUserSSHCertificate: Failed to sign SSH certificate, not 200 ok")
 	}
 
 	// parse Vault response
@@ -128,7 +128,7 @@ func (v *Vault) SignUserSSHCertificate(c *ssh.Certificate) (string, error) {
 	decoder := json.NewDecoder(resp.Body)
 	err = decoder.Decode(&sshCertificate)
 	if err != nil {
-		return "", errors.New("Failed to decode SSH certificate (" + err.Error() + ")")
+		return "", errors.New("signUserSSHCertificate: Failed to decode SSH certificate (" + err.Error() + ")")
 	}
 
 	return strings.TrimSuffix(sshCertificate.Data.SignedKey, "\n"), nil
@@ -144,7 +144,7 @@ func (v *Vault) GetExternalPublicKey() (string, error) {
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New("External CA did not respond correctly: status code " + strconv.Itoa(resp.StatusCode))
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

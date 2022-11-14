@@ -32,7 +32,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -40,7 +40,6 @@ import (
 
 	"github.com/globocom/gsh/cli/cmd/auth"
 	"github.com/globocom/gsh/cli/cmd/config"
-	"github.com/globocom/gsh/types"
 	"github.com/gosimple/slug"
 	"github.com/spf13/cobra"
 )
@@ -56,8 +55,7 @@ var roleRemoveCmd = &cobra.Command{
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {
@@ -86,6 +84,10 @@ var roleRemoveCmd = &cobra.Command{
 
 		// Make GSH request
 		req, err := http.NewRequest("DELETE", currentTarget.Endpoint+"/authz/roles/"+args[0], nil)
+		if err != nil {
+			fmt.Printf("Client error creating delete role request: (%s)\n", err.Error())
+			os.Exit(1)
+		}
 		req.Header.Set("Authorization", "JWT "+oauth2Token.AccessToken)
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := netClient.Do(req)
@@ -95,7 +97,7 @@ var roleRemoveCmd = &cobra.Command{
 		}
 
 		// Read body
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Printf("Client error reading role response: (%s)\n", err.Error())
 			os.Exit(1)

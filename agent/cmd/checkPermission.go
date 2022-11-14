@@ -3,7 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -279,7 +279,7 @@ func getCertInfo(serialNumber, keyID, keyFingerprint, cert, certType, api string
 	}
 
 	// Get body
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"event":  "read certinfo body",
