@@ -32,6 +32,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -87,7 +88,7 @@ func initConfig() {
 		}
 
 		// check if .gsh folder exists and creates if it not exists
-		path := home + "/.gsh"
+		path := filepath.Join(filepath.Clean(home), ".gsh")
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			err := os.Mkdir(path, 0750)
 			if err != nil {
@@ -105,10 +106,10 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 
 		// test if config file exists and creates if it not exists
-		configFile := path + "/config.yaml"
+		configFile := filepath.Join(path, "/config.yaml")
 		err = viper.ReadInConfig()
 		if err != nil {
-			f, err := os.Create(configFile)
+			f, err := os.Create(filepath.Clean(configFile))
 			if err != nil {
 				fmt.Printf("Client error creating config file: %s (%s)\n", configFile, err.Error())
 				os.Exit(1)
