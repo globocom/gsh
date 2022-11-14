@@ -5,7 +5,6 @@ GO ?= go
 GOROOT ?= $(shell $(GO) env GOROOT)
 GOPATH ?= $(shell $(GO) env GOPATH)
 GOBIN ?= $(GOPATH)/bin
-GOLINT ?= $(GOBIN)/golint
 GOSEC ?= $(GOBIN)/gosec
 
 GSHBIN ?= gsh
@@ -24,17 +23,16 @@ check-deps:
 
 ## Gets all go test dependencies
 get-test-deps:
-	$(GO) get -u golang.org/x/lint/golint
 	$(GO) install github.com/mattn/goveralls@latest
 
 ## Runs a security static analysis using Gosec
 check-sec:
-	$(GO) get -u github.com/securego/gosec/cmd/gosec
+	$(GO) install github.com/securego/gosec/v2/cmd/gosec@latest
 	$(GOSEC) ./... 2> /dev/null
 
 ## Runs lint
 lint:
-	$(GOLINT) $(shell $(GO) list ./...)
+	$(GO) vet ./...
 
 ## Perfoms all make tests
 test: get-test-deps check-deps lint coverage

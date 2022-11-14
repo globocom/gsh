@@ -10,7 +10,11 @@ COLOR_RED = \033[31m
 PROJECT := GSH
 
 ## Installs a development environment
-install: environment deploy msg
+install: dist environment deploy msg
+
+# Check if dist folder already exists
+dist:
+	if [ ! -d "../dist" ]; then echo "-> Stopping here... you need run 'make release' before!"; exit 1; fi
 
 ## Composes project using docker-compose
 deploy:

@@ -446,7 +446,7 @@
     {
       "id": "a09c3e88-2168-47fa-af13-887c663af47f",
       "clientId": "gsh",
-      "rootUrl": "http://localhost:*",
+      "rootUrl": "http://localhost:30000",
       "adminUrl": "http://localhost:*",
       "surrogateAuthRequired": false,
       "enabled": true,
