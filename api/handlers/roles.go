@@ -282,7 +282,8 @@ func (h AppHandler) AssociateRoleToUser(c echo.Context) error {
 	// Add role to user if found
 	check := h.permEnforcer.AddRoleForUser(user, roleID)
 	if !check {
-		fmt.Printf("User (%s) alread have this role (%s)\n", user, roleID)
+		return c.JSON(http.StatusUnprocessableEntity,
+			map[string]string{"result": "fail", "message": "User already have this role"})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role associated"})
@@ -374,7 +375,8 @@ func (h AppHandler) DisassociateRoleToUser(c echo.Context) error {
 	// Add role to user if found
 	check := h.permEnforcer.DeleteRoleForUser(user, roleID)
 	if !check {
-		fmt.Printf("User (%s) don't have this role (%s)\n", user, roleID)
+		return c.JSON(http.StatusUnprocessableEntity,
+			map[string]string{"result": "fail", "message": "User don't have this role"})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"result": "success", "message": "Role dissociated"})
