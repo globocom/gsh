@@ -125,7 +125,7 @@ func Check(config viper.Viper) error {
 	}
 
 	if fails > 0 {
-		return errors.New("Incorrect configuration")
+		return errors.New("incorrect configuration")
 	}
 
 	return nil

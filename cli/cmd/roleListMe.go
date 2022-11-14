@@ -55,8 +55,7 @@ List all roles for current user at GSH API.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Setting custom HTTP client with timeouts
 		var netTransport = &http.Transport{

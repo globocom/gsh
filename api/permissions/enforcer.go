@@ -45,7 +45,7 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	// Initiates a new enforcer
 	e, err := casbin.NewEnforcerSafe(m, a)
 	if err != nil {
-		return nil, errors.New("Could not create new Enforcer")
+		return nil, errors.New("init: Could not create new Enforcer")
 	}
 
 	e.SetModel(m)
@@ -57,7 +57,7 @@ func Init(config viper.Viper) (*casbin.Enforcer, error) {
 	// Reload policies from database before add admin policies
 	err = e.LoadPolicy()
 	if err != nil {
-		return nil, errors.New("Could not load policies")
+		return nil, errors.New("init: Could not load policies")
 	}
 
 	return e, nil

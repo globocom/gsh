@@ -58,8 +58,7 @@ List users associated with a role at GSH API.
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Get current target
-		currentTarget := new(types.Target)
-		currentTarget = config.GetCurrentTarget()
+		currentTarget := config.GetCurrentTarget()
 
 		// Validate if ID is slug string
 		if !slug.IsSlug(args[0]) {

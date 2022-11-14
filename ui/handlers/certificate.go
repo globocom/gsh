@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -105,6 +106,10 @@ func (h AppHandler) CertificateRequest(c echo.Context) error {
 	// Making GSH request
 	certRequestJSON, _ := json.Marshal(certRequest)
 	req, err := http.NewRequest("POST", h.config.GetString("API_ENDPOINT"), bytes.NewBuffer(certRequestJSON))
+	if err != nil {
+		fmt.Printf("Client error creating post certificate request: (%s)\n", err.Error())
+		os.Exit(1)
+	}
 	req.Header.Set("Authorization", "JWT "+sess.Values["rawIDToken"].(string))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := netClient.Do(req)

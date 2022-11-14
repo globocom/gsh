@@ -17,32 +17,23 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// certConfig is the struct that represents a certificate config
-type certConfig struct {
-	certType    uint32
-	command     string
-	extensions  map[string]string
-	keyID       string
-	principals  []string
-	srcAddr     string
-	validAfter  time.Time
-	validBefore time.Time
-}
-
 // CertCreate create a certificate for user login
 // - Input JSON sample:
-// {
-// 	"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4SgDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p3061Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcKXLl manoel.junior@twofish.local",
-// 	"remote_user":"jim",
-//  "remote_host":"192.168.2.105",
-// 	"user_ip":"192.168.2.5",
-// 	"command":"/bin/bash"
-// }
+//
+//	{
+//		"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeXQXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhqqvH8wIrjc85WuEpmqK7FcMZblcS4SgDMuOr11PWx36VNd5XRnRM0gfp3WFh3SRVqKHoH/39VHPHMz7LHt360EwKu9yslV7J0Jj631tG3p3061Nit/VOed6vRdFSE3na5FIwDw+LNvFJR8ahmAUKk1aMllBcRH8oXksDw5YufB84CRIr0znO/+8SIgcKXLl manoel.junior@twofish.local",
+//		"remote_user":"jim",
+//	 "remote_host":"192.168.2.105",
+//		"user_ip":"192.168.2.5",
+//		"command":"/bin/bash"
+//	}
 //
 // - Output sample
-// {
-// 	"result": "success",
-// 	"certificate": "ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3
+//
+//	{
+//		"result": "success",
+//		"certificate": "ssh-rsa-cert-v01@openssh.com AAAAHHNzaC1yc2EtY2VydC12MDFAb3
+//
 // BlbnNzaC5jb20AAAAgvz4Hjd5bR2H2ryXBjyTuGt+Uerg80LriH48MtyOyBIgAAAADAQABAAABAQ
 // C1sB8sL1RATWY04/aLHlRiIyBc59h+Vr+kcK/RL6yYcT3PqAvzTHMlstXKbG9g4P18+DriHbOxeX
 // QXRL/FZAJTE/kBs4iW/C75gxfny4scEq3xyAepk8R+812UKBN9QDivU7+LJ67YrmrZo8OmfhhVhq
@@ -65,7 +56,6 @@ type certConfig struct {
 // pYTN9tkQpfn+Noe4H7yOP2mkpAs3i7j/u0+Zz6SHejy4A7HlGHfJvWrOyg8J0ZzBSl5ho5eAw4Lr
 // t+xcTVkFgWWPcml7CFiGwFhbui4w==
 // }
-//
 func (h AppHandler) CertCreate(c echo.Context) error {
 	initTime := time.Now()
 
@@ -279,9 +269,11 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 // PublicKey returns CA public key
 //
 // - Output sample
-// {
-// 	"result":"success",
-//	"public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6rGI3i3D1fvay1MFKHjEfcvKA
+//
+//	{
+//		"result":"success",
+//		"public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6rGI3i3D1fvay1MFKHjEfcvKA
+//
 // A6vuNH5ayPcmOIoeHvkXPO6uCp4pbSNmy45szxyTEjGYJx0F6qylUzi4jZ+1BIpq5QStetsP4pryLhd
 // vK21bkCIBAqZbmw6Wc4D2Z+Qc7Is1/ZBr3g2lmfWApNqFmlwnDGpH6Hp0lRdBtanTz3/er99JS9WRXF
 // c/uRGkY6n/fX3VELTixmcyRIIQDI66Cy+6jkS9nDn4E8Hu2mshWP/VtOok4DsIBk1YQb9wSeTOtmIZf
@@ -290,8 +282,9 @@ func (h AppHandler) CertCreate(c echo.Context) error {
 // IXio9xBt/TyAHl3OfFQ6rYOwefvmp2ladV2Wy/BeIOPnswO0jk288qpzUDYE8sOlrtn3DZfqG5auDAe
 // A+7XNuDuwUmwjSFTRz4nAtooCaF8UTysIfHYFgtKvU+xCIXWsHMr4BSaF1B3f2434r4Hn0gfWeg5CSu
 // 0nO45S07q3TKjnoo644zmHtuUUw/+fG1ctmmjq1DO85TcotqdW1oT/SZwYxK7hqwvY7S5uClkUSXmDG
-//  UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
-// }
+//
+//	 UY3HMVIFLJPzCBi4bjhIX6Jbdw==\n"
+//	}
 func (h AppHandler) PublicKey(c echo.Context) error {
 
 	var publicKey string
@@ -313,11 +306,12 @@ func (h AppHandler) PublicKey(c echo.Context) error {
 // CertInfo returns certificate info based on KeyID
 //
 // - Output sample
-// {
-//	"result":"success",
-//	"remote_user": "username",
-//	"remote_host": "10.0.0.1"
-// }
+//
+//	{
+//		"result":"success",
+//		"remote_user": "username",
+//		"remote_host": "10.0.0.1"
+//	}
 func (h AppHandler) CertInfo(c echo.Context) error {
 
 	serialNumber := c.Param("serial")

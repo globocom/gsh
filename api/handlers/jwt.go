@@ -147,7 +147,7 @@ func verifySignature(jwt, certsURL string) error {
 
 func verifyExpiry(token IDToken) error {
 	if time.Time(token.Expiry).Before(time.Now()) {
-		return fmt.Errorf("Token is expired (%s)", time.Time(token.Expiry).String())
+		return fmt.Errorf("verifyExpiry: Token is expired (%s)", time.Time(token.Expiry).String())
 	}
 	return nil
 }
@@ -178,7 +178,7 @@ func verifyAuthorizedParty(token IDToken, azp string) error {
 
 func verifyIssuer(token IDToken, issuer string) error {
 	if token.Issuer != issuer {
-		return fmt.Errorf("Id Token issuer not recognized (%s)", token.Issuer)
+		return fmt.Errorf("verifyIssuer: Id Token issuer not recognized (%s)", token.Issuer)
 	}
 	return nil
 }

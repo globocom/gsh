@@ -171,7 +171,7 @@ func (ca OpenIDCAuth) verifyExpiry(token map[string]interface{}) error {
 	}
 
 	if time.Time(time.Unix(int64(tokenExp), 0)).Before(time.Now()) {
-		return fmt.Errorf("Token is expired (%v)", tokenExp)
+		return fmt.Errorf("verifyExpiry: Token is expired (%v)", tokenExp)
 	}
 	return nil
 }
