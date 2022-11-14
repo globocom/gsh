@@ -33,6 +33,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/globocom/gsh/cli/cmd/config"
 	"github.com/labstack/gommon/random"
@@ -48,7 +49,7 @@ func GetConfigPath() (string, error) {
 	}
 
 	// check if .gsh folder exists and creates if it not exists
-	path := home + "/.gsh"
+	path := filepath.Join(home, "/.gsh")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)
 		if err != nil {
@@ -67,7 +68,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	}
 
 	// Set specific path for certificates and private keys
-	certPath := configPath + "/certs"
+	certPath := filepath.Join(configPath, "/certs")
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
 		err := os.Mkdir(certPath, 0750)
 		if err != nil {
@@ -78,7 +79,7 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	// Set specific per target
 	// Get current target
 	currentTarget := config.GetCurrentTarget()
-	path := certPath + "/" + currentTarget.Label
+	path := filepath.Join(certPath, currentTarget.Label)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, 0750)
 		if err != nil {
@@ -88,8 +89,8 @@ func WriteKeys(key string, cert string) (string, string, error) {
 
 	// Store private key file with random name
 	id := random.String(32)
-	keyFileLocation := path + "/" + id
-	keyFile, err := os.Create(keyFileLocation)
+	keyFileLocation := filepath.Join(path, id)
+	keyFile, err := os.Create(filepath.Clean(keyFileLocation))
 	if err != nil {
 		return "", "", errors.New("File error creating keyfile (" + err.Error() + ")")
 	}
@@ -107,8 +108,8 @@ func WriteKeys(key string, cert string) (string, string, error) {
 	}
 
 	// Store cert file with suffix "-cert.pub" (https://man.openbsd.org/ssh.1#i)
-	certLocation := path + "/" + id + "-cert.pub"
-	certFile, err := os.Create(certLocation)
+	certLocation := filepath.Join(path, id+"-cert.pub")
+	certFile, err := os.Create(filepath.Clean(certLocation))
 	if err != nil {
 		return "", "", errors.New("File error creating certfile (" + err.Error() + ")")
 	}
