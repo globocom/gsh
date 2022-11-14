@@ -3,9 +3,10 @@
 # This script initializes gsh-agent on the target machine.
 #
 
+sed -i s/root:!/"root:*"/g /etc/shadow
 mv /tmp/scripts/ca_host_key.pub /etc/ssh/cas.pub
 echo "TrustedUserCAKeys /etc/ssh/cas.pub" > /etc/ssh/sshd_config
-echo "AuthorizedPrincipalsCommand /usr/local/bin/gsh-agent check-permission --key-id %i --username %u --api http://gsh_api:8000" >> /etc/ssh/sshd_config
+echo "AuthorizedPrincipalsCommand /usr/local/bin/gsh-agent check-permission --serial-number %s --key-id %i --username %u --api http://gsh_api:8000" >> /etc/ssh/sshd_config
 echo "AuthorizedPrincipalsCommandUser $(whoami)" >> /etc/ssh/sshd_config
 
 ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
